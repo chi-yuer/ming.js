@@ -238,7 +238,7 @@
 
 **Methods**
 
--   无
+-   none
 
 
 
@@ -256,7 +256,7 @@
 **Values**
 
 -   **menuRoute:** url of menu
--   **disabled: ** whether to disable this menu
+-   **disabled:** whether to disable this menu
 
 **Operation**
 
@@ -280,7 +280,7 @@
 
 **Methods**
 
--   **config(config) :** config this component
+-   **register(config) :** config this component
 -   **render():** re-render this table
 -   **showError():** show table error page
 -   **hideError():** hide table error page
@@ -290,6 +290,14 @@
 
 
 ## Usage
+
+### import
+
+```html
+<script type="text/javascript" src="./ming/ming.js"></script>
+```
+
+
 
 ### select
 
@@ -461,11 +469,17 @@
         ]
     };
 
-    document.querySelector('#main-table').config(config);
+    document.querySelector('#main-table').register(config);
 </script>
 ```
 
 ![Preview of table](./previews/preview_table.png)
+
+
+
+## More
+
+-   [Document of table](./docs/DOC_TABLE.md)
 
 
 

@@ -280,7 +280,7 @@
 
 **方法**
 
--   **config(config) :** 配置表格组件，config 参数为必须
+-   **register(config) :** 配置表格组件，config 参数为必须
 -   **render():** 重新获取值渲染表格
 -   **showError():** 显示表格渲染错误的页面
 -   **hideError():** 隐藏表格渲染错误的也米娜
@@ -290,6 +290,14 @@
 
 
 ## 使用
+
+### 引入
+
+```html
+<script type="text/javscript" src="./ming/ming.js"></script>
+```
+
+
 
 ### select
 
@@ -461,7 +469,7 @@
         ]
     };
 
-    document.querySelector('#main-table').config(config);
+    document.querySelector('#main-table').register(config);
 </script>
 ```
 
@@ -469,6 +477,12 @@
 
 
 
-# 开源协议
+## 更多
+
+-   [表格说明文档](./docs/DOC_TABLE.md)
+
+
+
+## 开源协议
 
 -   [MIT License](./LICENSE)
