@@ -204,6 +204,8 @@
             param.container.showError();
             return false;
         }
+        delete param.container.config;
+        delete param.container.renderList;
         param.pageSize = config.pageSize || 10; // 分页大小
         param.pageNumber = config.pageNumber || 1; // 分页页码
         if (!param.config.data) {
@@ -431,6 +433,12 @@
                 data: param.config.data,
                 pageTypeIcon: param.config.pageTypeIcon || false,
             };
+            if (param.config.success && typeof param.config.success == 'function') {
+                tableParam.success = param.config.success;
+            }
+            if (param.config.error && typeof param.config.error == 'function') {
+                tableParam.error = param.config.error;
+            }
             param.container.config = tableParam;
             let mainTableBody = document.createElement('table');
             mainTableBody.setAttribute('slot', 'main-table');
@@ -696,7 +704,13 @@
                 param.container.showError();
                 return false;
             }
+            if (param.config.success && typeof param.config.success == 'function') {
+                eval(`param.config.success(param.container, param.tableData)`)
+            }
         } else {
+            if (param.config.error && typeof param.config.error == 'function') {
+                eval(`param.config.error(param.container, param.tableData)`)
+            }
             param.container.showEmpty();
         }
         this.config = param.config;
@@ -2549,7 +2563,6 @@
                 let maxScroll = self.shadowRoot.querySelector('.table-main').scrollHeight - self.shadowRoot.querySelector('.table-main').clientHeight;
                 if (e.deltaY > 0) { // 向下滚动滚轮
                     result = (top + scrollStep) > maxScroll ? maxScroll : (top + scrollStep);
-                    // self.shadowRoot.querySelector('.table-main').scrollTop = result;
                     self.shadowRoot.querySelector('.table-main').scrollTo({
                         top: result,
                         behavior: 'smooth',
@@ -2569,7 +2582,6 @@
                 let maxScroll = self.shadowRoot.querySelector('.table-main').scrollHeight - self.shadowRoot.querySelector('.table-main').clientHeight;
                 if (e.deltaY > 0) { // 向下滚动滚轮
                     result = (top + scrollStep) > maxScroll ? maxScroll : (top + scrollStep);
-                    // self.shadowRoot.querySelector('.table-main').scrollTop = result;
                     self.shadowRoot.querySelector('.table-main').scrollTo({
                         top: result,
                         behavior: 'smooth',
@@ -2587,7 +2599,7 @@
             });
         }
 
-        config(config) { // 配置m-table格式
+        register(config) { // 配置m-table格式
             configMingTable.apply(this, [config]);
         }
 
@@ -2599,46 +2611,130 @@
             this.hideEmpty();
             this.config.error = true;
             this.shadowRoot.querySelector('.table-body').classList.add('error');
-            /*let errorNode = this.shadowRoot.querySelector('.error');
-            errorNode.style.display = null;
-            errorNode.style.top = this.shadowRoot.querySelector('.table-header').offsetHeight + 'px';
-            let height = this.clientHeight - this.shadowRoot.querySelector('.table-header').offsetHeight - this.shadowRoot.querySelector('.table-footer').offsetHeight;
-            if (height) {
-                errorNode.style.height = height + 'px';
-            } else {
-                errorNode.style.height = '100px';
-                this.shadowRoot.querySelector('.table-main').style.height = '100px';
-            }*/
         }
 
         hideError() {
             delete(this.config.error);
             this.shadowRoot.querySelector('.table-body').classList = ['table-body'];
-            /*this.shadowRoot.querySelector('.table-body').classList.add('error');
-            this.shadowRoot.querySelector('.error').style.display = 'none';*/
         }
 
         showEmpty() {
             this.hideError();
             this.config.empty = true;
             this.shadowRoot.querySelector('.table-body').classList.add('empty');
-            /*let emptyNode = this.shadowRoot.querySelector('.empty');
-            emptyNode.style.display = null;
-            emptyNode.style.top = this.shadowRoot.querySelector('.table-header').offsetHeight + 'px';
-            let height = this.clientHeight - this.shadowRoot.querySelector('.table-header').offsetHeight - this.shadowRoot.querySelector('.table-footer').offsetHeight;
-            if (height) {
-                emptyNode.style.height = height + 'px';
-            } else {
-                emptyNode.style.height = '100px';
-                this.shadowRoot.querySelector('.table-main').style.height = '100px';
-            }*/
         }
 
         hideEmpty() {
-            // this.hideError();
             delete(this.config.empty);
             this.shadowRoot.querySelector('.table-body').classList = ['table-body'];
-            // this.shadowRoot.querySelector('.empty').style.display = 'none';
+        }
+
+        getOption(option) {
+            switch (option) {
+                case 'pageSize':
+                    return this.config.pageSize;
+                    break;
+                case 'pageNumber':
+                    return this.config.pageNumber;
+                    break;
+                case 'columns':
+                    return this.config.columns;
+                    break;
+                case 'error':
+                    return !!this.config.error;
+                    break;
+                case 'empty':
+                    return !!this.config.empty;
+                    break;
+                default:
+                    return undefined;
+            }
+        }
+
+        setOption(option, value) {
+            switch (option) {
+                case 'pageSize':
+                    if (value != null && typeof value === 'number') {
+                        this.config.pageNumber = 1;
+                        this.config.pageSize = value;
+                        this.render();
+                    }
+                    break;
+                case 'pageNumber':
+                    if (value != null && typeof value === 'number') {
+                        this.config.pageNumber = value;
+                        this.render();
+                    }
+                    break;
+                case 'success':
+                    if (value != null && typeof value === 'function') {
+                        this.config.success = value;
+                        this.render();
+                    }
+                    break;
+                case 'error':
+                    if (value != null && typeof value === 'function') {
+                        this.config.error = value;
+                        this.render();
+                    }
+                    break;
+                case 'refresh':
+                    if (this.config) {
+                        this.render();
+                    }
+                    break;
+                case 'reload':
+                    if (this.config) {
+                        this.render();
+                    }
+                    break;
+                case 'previous':
+                    if (this.config
+                        && this.config.pageNumber
+                        && typeof this.config.pageNumber === 'number'
+                        && this.config.pageNumber > 1
+                    ) {
+                        this.config.pageNumber--;
+                        this.render();
+                    }
+                    break;
+                case 'next':
+                    if (this.config
+                        && this.config.pageNumber
+                        && this.config.maxPageNumber
+                        && typeof this.config.pageNumber === 'number'
+                        && typeof this.config.maxPageNumber === 'number'
+                        && this.config.pageNumber < this.config.maxPageNumber
+                    ) {
+                        this.config.pageNumber++;
+                        this.render();
+                    }
+                    break;
+                case 'first':
+                    if (this.config
+                        && this.config.pageNumber
+                        && typeof this.config.pageNumber === 'number'
+                        && this.config.pageNumber != 1
+                    ) {
+                        this.config.pageNumber = 1;
+                        this.render();
+                    }
+                    break;
+                case 'last':
+                    if (this.config
+                        && this.config.pageNumber
+                        && this.config.maxPageNumber
+                        && typeof this.config.pageNumber === 'number'
+                        && typeof this.config.maxPageNumber === 'number'
+                        && this.config.pageNumber < this.config.maxPageNumber
+                    ) {
+                        this.config.pageNumber = this.config.maxPageNumber;
+                        this.render();
+                    }
+                    break;
+                default:
+                    return undefined;
+            }
         }
     }
 
