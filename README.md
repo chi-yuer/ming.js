@@ -1,300 +1,295 @@
+简体中文|[English](./README_en.md)
+
 # Ming-ui
 
->   ui framework for enterprise performance evaluation system
+>   为企业绩效评价系统定制开发的一款UI框架
 
 
 
-## Language
-
--   简体中文（[README_zh.md](./README_zh.md)）
--   English
-
-
-
-## Author
+## 作者
 
 -   Quarter ([https://shiruihua.cn](https://shiruihua.cn))
 
 
 
-## Dependency
+## 依赖
 
 -   [wendux/fly](https://github.com/wendux/fly)
 
 
 
-## Document
+## 文档
 
 ### m-select
 
-**Attributes**
+**属性**
 
--   **disabled:** whether to disable components
+-   **disabled:** 是否禁用组件
 
-**Styles**
+**样式**
 
--   **--m-select-color:** default color of select 
--   **--m-select-disable-color:** color of select when disabled
--   **--m-select-active-color:**  color of select wnen hovered
--   **--m-option-color:**  default color of option
--   **--m-option-active-color:**  color of option when actived
--   **--m-option-active-bg:**  background color of option when actived
--   **--m-option-disable-color:** color of option when disabled
+-   **--m-select-color:** 默认情况下的字体颜色
+-   **--m-select-disable-color:**  禁用状态下的字体颜色
+-   **--m-select-active-color:** 激活状态下的字体颜色
+-   **--m-option-color:**  默认情况下选项的字体颜色
+-   **--m-option-active-color:** 激活状态下选项的字体颜色
+-   **--m-option-active-bg:**  激活状态下选项的背景颜色
+-   **--m-option-disable-color:** 禁用状态下的字体颜色
 
-**Values**
+**值**
 
--   **disabled:** whether to disable components
+-   **disabled:** 是否禁用组件
 
-**Methods**
+**方法**
 
--   **calcWidthAndPosition():** re-caculate component width and list position
+-   **calcWidthAndPosition():** 重新计算组件布局
 
 
 
 ### m-option
 
-**Attributes**
+**属性**
 
--   **value:** options value (default value is options name)
--   **disabled:** whether to disable option
--   **selected:** whether to select option
+-   **value:** 选项的值（缺省为选项的内容）
+-   **disabled:** 是否禁用该选项
+-   **selected:** 该选项是否选中
 
-**Styles**
+**样式**
 
--   none
+-   无
 
-**Values**
+**值**
 
--   **value:** options value (default value is options name)
--   **disabled:** whether to disable option
--   **selected:** whether to select option
+-   **value:** 选项的值（缺省为选项的内容）
+-   **disabled:** 是否禁用该选项
+-   **selected:** 该选项是否选中
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-operation-list
 
-**Attributes**
+**属性**
 
--   **disabled:** whether to disabled components
+-   **disabled:** 是否禁用组件
 
-**Styles**
+**样式**
 
--   **--m-operation-list-color:** default color of operation list
--   **--m-operation-list-bg:** default background color of operation list
--   **--m-operation-list-disable-color:** color of operation list when disabled
--   **--m-operation-list-disable-bg:** background color of operation list when disabled
--   **--m-operation-color:** default color of operaion
--   **--m-operation-active-color:** color of operation when actived
--   **--m-operation-active-bg:** background color of operation when actived
--   **--m-operation-disable-color:** color of operation when disabled
+-   **--m-operation-list-color:** 默认情况下的文字颜色
+-   **--m-operation-list-bg:** 默认情况下的背景颜色
+-   **--m-operation-list-disable-color:** 禁用状态下的字体颜色
+-   **--m-operation-list-disable-bg:** 禁用状态下的背景颜色
+-   **--m-operation-color:** 默认情况下操作项的字体颜色
+-   **--m-operation-active-color:** 激活状态下操作项的字体颜色
+-   **--m-operation-active-bg:** 激活状态下的操作项的背景颜色
+-   **--m-operation-disable-color:** 禁用状态下的操作项的字体颜色
 
-**Values**
+**值**
 
--   **disabled:** whether to disabled components
+-   **disabled:** 是否禁用组件
 
-**Methods**
+**方法**
 
--   **calcWidthAndPosition():** re-caculate component width and list position
+-   **calcWidthAndPosition():** 重新计算组件布局
 
 
 
 ### m-operation
 
-**Attributes**
+**属性**
 
--   **operation:** function called when clicked
--   **disabled:** whether to disabled this operation
+-   **operation:** 点击时调用的操作
+-   **disabled:** 是否禁用该选项
 
-**Styles**
+**样式**
 
--   none
+-   无
 
-**Values**
+**值**
 
--   **operation:** function called when clicked
--   **disabled:** whether to disabled this operation
+-   **operation:** 点击时调用的操作
+-   **disabled:** 是否禁用该选项
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-function
 
-**Attributes**
+**属性**
 
--   **icon:** unicode of icon
--   **icon-class:** class of icon
--   **disabled:** whether to disabled this function
--   **operation:** function called when clicked
--   **tip:** tip showed when hover component
+-   **icon:** 图标的unicode代码
+-   **icon-class:** 图标的类名
+-   **disabled:** 是否禁用组件
+-   **operation:** 点击时调用的方法名
+-   **tip:** 指针悬浮时显示的提示信息
 
-**Styles**
+**样式**
 
--   **--m-function-color:** default color of components
--   **--m-function-bg:** default background color of components
--   **--m-function-disable-color:** color of components when disabled
--   **--m-function-disable-bg:** background color of components when disabled
+-   **--m-function-color:** 默认情况下的字体颜色
+-   **--m-function-bg:** 默认情况下的背景颜色
+-   **--m-function-disable-color:** 禁用状态下的字体颜色
+-   **--m-function-disable-bg:** 禁用状态下的背景颜色
 
-**Values**
+**值**
 
--   **icon:** unicode of icon
--   **icon-class:** class of icon
--   **disabled:** whether to disabled this function
--   **operation:** function called when clicked
--   **tip:** tip showed when hover component
+-   **icon:** 图标的unicode代码
+-   **icon-class:** 图标的类名
+-   **disabled:** 是否禁用组件
+-   **operation:** 点击时调用的方法名
+-   **tip:** 指针悬浮时显示的提示信息
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-icon-function
 
-**Attributes**
+**属性**
 
--   **icon:** unicode of icon
--   **icon-class:** class of icon
--   **disabled:** whether to disabled this function
--   **operation:** function called when clicked
--   **tip:** tip showed when hover component
+-   **icon:** 图标的unicode代码
+-   **icon-class:** 图标的类名
+-   **disabled:** 是否禁用组件
+-   **operation:** 点击时调用的方法名
+-   **tip:** 指针悬浮时显示的提示信息
 
-**Styles**
+**样式**
 
--   **--m-icon-function-color:** default color of components
--   **--m-icon-function-active-color:** color of components when actived
--   **--m-icon-function-active-bg:** background color of components when actived
--   **--m-icon-function-disable-color:** color of components when disabled
--   **--m-icon-function-tip-color:** default color of tip
--   **--m-icon-function-tip-bg:** default background color of tip
+-   **--m-icon-function-color:** 默认情况下的字体颜色
+-   **--m-icon-function-active-color:** 激活状态下的字体颜色
+-   **--m-icon-function-active-bg:** 激活状态下的背景颜色
+-   **--m-icon-function-disable-color:** 禁用状态下的字体颜色
+-   **--m-icon-function-tip-color:** 提示框的字体颜色
+-   **--m-icon-function-tip-bg:** 提示框的背景颜色
 
-**Values**
+**值**
 
--   **icon:** unicode of icon
--   **icon-class:** class of icon
--   **disabled:** whether to disabled this function
--   **operation:** function called when clicked
--   **tip:** tip showed when hover component
+-   **icon:** 图标的unicode代码
+-   **icon-class:** 图标的类名
+-   **disabled:** 是否禁用组件
+-   **operation:** 点击时调用的方法名
+-   **tip:** 指针悬浮时显示的提示信息
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-menu
 
-**Attributes**
+**属性**
 
--   **menu-target:** route target when menu clicked
+-   **menu-target:** 菜单操作的对象的id
 
-**Styles**
+**样式**
 
--   none
+-   无
 
-**Values**
+**值**
 
--   **menu-target:** route target when menu clicked
+-   **menu-target:** 菜单操作的对象的id
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-menu-group
 
-**Attributes**
+**属性**
 
--   **icon:** icon for menu group
--   **group-name:** first level menu name
--   **menu-route:** url of menu
--   **disabled:** whether to disable this menu group
+-   **icon:** 一级菜单对应的图标类名
+-   **group-name:** 一级菜单的名称
+-   **menu-route:** 一级菜单对应的url
+-   **disabled:** 菜单是否禁用
 
-**Styles**
+**样式**
 
--   **--m-menu-group-active-bg:**  background color of first level menu when actived
--   **--m-menu-group-color:** default color of first level menu
--   **--m-menu-group-disable-color:** color of first level menu when disabled
--   **--m-menu-group-icon-active-color:** color of menu icon when actived
--   **--m-menu-group-active-color:** color of menu name when actived
--   **--m-menu-group-icon-disable-color:** color of menu icon when disabled
--   **--m-menu-item-color:** default color of second level menu
--   **--m-menu-item-active-color:** color of second level menu when actived
--   **--m-menu-item-disable-color:** color of second level menu when disabled
+-   **--m-menu-group-active-bg:** 激活时的菜单组的背景颜色
+-   **--m-menu-group-color:** 默认状态下一级菜单的字体颜色
+-   **--m-menu-group-disable-color:** 禁用状态下一级菜单的字体颜色
+-   **--m-menu-group-icon-active-color:** 激活状态下的菜单图标的颜色
+-   **--m-menu-group-active-color:** 激活状态下的一级菜单的颜色
+-   **--m-menu-group-icon-disable-color:** 禁用状态下的菜单图标的颜色
+-   **--m-menu-item-color:** 默认情况下二级菜单的字体颜色
+-   **--m-menu-item-active-color:** 激活状态下的二级菜单的字体颜色
+-   **--m-menu-item-disable-color:** 禁用状态下的二级菜单的字体颜色
 
-**Values**
+**值**
 
--   **icon:** icon for menu group
--   **group-name:** first level menu name
--   **menu-route:** url of menu
--   **disabled:** whether to disable this menu group
+-   **icon:** 一级菜单对应的图标类名
+-   **group-name:** 一级菜单的名称
+-   **menu-route:** 一级菜单对应的url
+-   **disabled:** 菜单是否禁用
 
-**Methods**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-menu-item
 
-**Attributes**
+**属性**
 
--   **menu-route:** url of menu
--   **disabled:** whether to disable this menu
+-   **menu-route:** 二级菜单对应的url
+-   **disabled:** 菜单是否禁用
 
-**Styles**
+**样式**
 
--   none
+-   无
 
-**Values**
+**值**
 
--   **menuRoute:** url of menu
--   **disabled:** whether to disable this menu
+-   **menu-route:** 二级菜单对应的url
+-   **disabled:** 菜单是否禁用
 
-**Operation**
+**方法**
 
--   none
+-   无
 
 
 
 ### m-table
 
-**Attributes**
+**属性**
 
--   none
+-   无
 
-**Styles**
+**样式**
 
--   none
+-   无
 
-**Values**
+**值**
 
--   **config:** get table config
+-   **config:** 表格的配置项
 
-**Methods**
+**方法**
 
--   **register(config) :** config this component
--   **render():** re-render this table
--   **showError():** show table error page
--   **hideError():** hide table error page
--   **showEmpty():** show table empty page
--   **hideEmpty():** hide table empty page
+-   **register(config) :** 配置表格组件，config 参数为必须
+-   **render():** 重新获取值渲染表格
+-   **showError():** 显示表格渲染错误的页面
+-   **hideError():** 隐藏表格渲染错误的也米娜
+-   **showEmpty():** 显示无数据页面
+-   **hideEmpty():** 隐藏无数据页面
 
 
 
-## Usage
+## 使用
 
-### import
+### 引入
 
 ```html
-<script type="text/javascript" src="./ming/ming.js"></script>
+<script type="text/javscript" src="./ming/ming.js"></script>
 ```
 
 
@@ -303,98 +298,98 @@
 
 ```html
 <m-select>
-    <m-option value="1">option 1</m-option>
-    <m-option value="2">option 2</m-option>
-    <m-option value="3">option 3</m-option>
-    <m-option value="4" selected>option 4</m-option>
-    <m-option value="5" disabled>option 5</m-option>
-    <m-option value="6">option 6</m-option>
-    <m-option value="7">option 7</m-option>
-    <m-option value="8">option 8</m-option>
+    <m-option value="1">选项 1</m-option>
+    <m-option value="2">选项 2</m-option>
+    <m-option value="3">选项 3</m-option>
+    <m-option value="4" selected>选项 4</m-option>
+    <m-option value="5" disabled>选项 5</m-option>
+    <m-option value="6">选项 6</m-option>
+    <m-option value="7">选项 7</m-option>
+    <m-option value="8">选项 8</m-option>
 </m-select>
 ```
 
-**preview**
+**预览**
 
-![Preview of select](./previews/preview_select.png)
+![select 的预览图](./previews/preview_zh_select.png)
 
 ### operation-list
 
 ```html
 <m-operation-list>
-    <m-operation operation="helloWorld">edit</m-operation>
-    <m-operation operation="helloWorld" disabled>compare</m-operation>
-    <m-operation>delete</m-operation>
-    <m-operation>more detail</m-operation>
+    <m-operation operation="helloWorld">编辑数据</m-operation>
+    <m-operation operation="helloWorld" disabled>加入对比</m-operation>
+    <m-operation>删除数据</m-operation>
+    <m-operation>查看详情</m-operation>
 </m-operation-list>
 ```
 
-**preview**
+**预览**
 
-![Preview of operation-list](./previews/preview_operation_list.png)
+![operation-list 的预览图](./previews/preview_zh_operation_list.png)
 
 ### function
 
 ```html
-<m-function icon-class="ming-icon-plus" tip="upload image"></m-function>
+<m-function icon-class="ming-icon-plus" tip="上传图片"></m-function>
 ```
 
-**preview**
+**预览**
 
-![Preview of function](./previews/preview_function.png)
+![ function的预览图](./previews/preview_zh_function.png)
 
 ### icon-function
 
 ```html
-<m-icon-function icon-class="ming-icon-home" tip="Home" operation="helloWorld"></m-icon-function>
+<m-icon-function icon-class="ming-icon-home" tip="主页" operation="helloWorld"></m-icon-function>
 ```
 
-**preview**
+**预览**
 
-![Preview of icon-function](./previews/preview_icon_function.png)
+![ icon-function 的预览图](./previews/preview_zh_icon_function.png)
 
 ### menu
 
 ```html
 <m-menu menu-target="main-content">
-    <m-menu-group icon="ming-icon-settings" group-name="group 1">
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 1">
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 2">
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
-        <m-menu-item menu-route="">item 3</m-menu-item>
-        <m-menu-item menu-route="">item 4</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 2">
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 3</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 4</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 3">
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 3">
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 4" menu-route=""></m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 5">
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 4" menu-route=""></m-menu-group>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 5">
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 6">
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
-        <m-menu-item menu-route="">item 3</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 6">
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 3</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="disabled group" disabled>
-        <m-menu-item menu-route="">item 1</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="禁用的一级菜单" disabled>
+        <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
     </m-menu-group>
-    <m-menu-group icon="ming-icon-settings" group-name="group 8">
-        <m-menu-item menu-route="" disabled>disabled item</m-menu-item>
-        <m-menu-item menu-route="">item 2</m-menu-item>
+    <m-menu-group icon="ming-icon-settings" group-name="一级菜单 8">
+        <m-menu-item menu-route="" disabled>禁用的二级菜单</m-menu-item>
+        <m-menu-item menu-route="">二级菜单 2</m-menu-item>
     </m-menu-group>
 </m-menu>
 ```
 
-**preview**
+**预览**
 
-![Preview of menu](./previews/preview_menu.png)
+![menu 的预览图](./previews/preview_zh_menu.png)
 
 ### m-table
 
@@ -431,40 +426,40 @@
         columns: [
             [
                 {
-                    title: 'col1-1',
+                    title: '序号',
                     rowspan: 2,
                     formatter: function (column, row, index) {
                         return index + 1;
                     }
                 },
-                {title: 'col1-2', colspan: 9},
-                {title: 'col1-3', colspan: 3},
+                {title: '第一组', colspan: 9},
+                {title: '第二组', colspan: 3},
                 {
-                    title: 'col1-4',
+                    title: '操作',
                     fixed: true,
                     rowspan: 2,
                     formatter: function (column, row, index) {
                         return `<m-operation-list>
-                            <m-operation>operation A</m-operation>
-                            <m-operation>operation B</m-operation>
-                            <m-operation>operation C</m-operation>
+                            <m-operation>操作项 A</m-operation>
+                            <m-operation>操作项 B</m-operation>
+                            <m-operation>操作项 C</m-operation>
                         </m-operation-list>`;
                     }
                 },
             ],
             [
-                {title: 'col2-2', field: 'col1'},
-                {title: 'col2-3', field: 'col2'},
-                {title: 'col2-4', field: 'col3'},
-                {title: 'col2-5', field: 'col4'},
-                {title: 'col2-6', field: 'col5'},
-                {title: 'col2-7', field: 'col6'},
-                {title: 'col2-8', field: 'col7'},
-                {title: 'col2-9', field: 'col8'},
-                {title: 'col2-10', field: 'col9'},
-                {title: 'col2-11', field: 'col10'},
-                {title: 'col2-12', field: 'col11'},
-                {title: 'col2-13', field: 'col12'},
+                {title: '数据 1', field: 'col1'},
+                {title: '数据 2', field: 'col2'},
+                {title: '数据 3', field: 'col3'},
+                {title: '数据 4', field: 'col4'},
+                {title: '数据 5', field: 'col5'},
+                {title: '数据 6', field: 'col6'},
+                {title: '数据 7', field: 'col7'},
+                {title: '数据 8', field: 'col8'},
+                {title: '数据 9', field: 'col9'},
+                {title: '数据 10', field: 'col10'},
+                {title: '数据 11', field: 'col11'},
+                {title: '数据 12', field: 'col12'},
             ]
         ]
     };
@@ -473,16 +468,16 @@
 </script>
 ```
 
-![Preview of table](./previews/preview_table.png)
+![table 的预览图](./previews/preview_zh_table.png)
 
 
 
-## More
+## 更多
 
--   [Document of table](./docs/DOC_TABLE.md)
+-   [表格说明文档](./docs/DOC_TABLE.md)
 
 
 
-## License
+## 开源协议
 
 -   [MIT License](./LICENSE)
