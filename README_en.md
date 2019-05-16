@@ -6,9 +6,6 @@
 
 
 
--   简体中文（[README_zh.md](./README_zh.md)）
--   English
-
 ## Author
 
 -   Quarter ([https://shiruihua.cn](https://shiruihua.cn))
