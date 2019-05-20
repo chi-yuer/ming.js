@@ -21,6 +21,8 @@
   if (
     window.customElements.get("m-select") ||
     window.customElements.get("m-option") ||
+    window.customElements.get("m-input") ||
+    window.customElements.get("m-form-item") ||
     window.customElements.get("m-operation-list") ||
     window.customElements.get("m-operation") ||
     window.customElements.get("m-function") ||
@@ -153,7 +155,7 @@
     }
   };
 
-  // 引入 ming.css、iconfont.css
+  // 获取相对路径
   let heads = document.getElementsByTagName("head");
   if (heads.length) {
     syncLoadDependency.loadStyle(heads[0], `${url}ming.css`);
@@ -180,6 +182,25 @@
     window.MutationObserver ||
     window.WebKitMutationObserver ||
     window.MozMutationObserver;
+
+  // 获取浏览器滚动条的宽度
+  function getScrollBarWidth() {
+    let ele = document.createElement("p"),
+      styles = {
+        width: "100px",
+        height: "100px",
+        overflowY: "scroll"
+      };
+    for (let i in styles) {
+      ele.style[i] = styles[i];
+    }
+    document.body.appendChild(ele);
+    let scrollBarWidth = ele.offsetWidth - ele.clientWidth;
+    //将添加的元素删除
+    ele.remove();
+    return scrollBarWidth;
+  }
+  const browerScrollBarWidth = getScrollBarWidth();
 
   // 自定义异常输出方式
   function mError() {
@@ -210,7 +231,11 @@
   const ScrollTop = (obj, number = 0, time, bar) => {
     if (!time) {
       obj.scrollTop = number;
-      if (bar) bar.style.top = number + "px";
+      if (bar)
+        bar.style.top =
+          (number / (obj.scrollHeight - obj.clientHeight)) *
+            (obj.clientHeight - bar.clientHeight) +
+          "px";
       return number;
     }
     const spacingTime = 20; // 设置循环的间隔时间  值越小消耗性能越高
@@ -718,9 +743,9 @@
         let currentPage = param.config.pageNumber;
         let pageSize = param.config.pageSize;
         let maxPage = Math.ceil(param.tableData.total / pageSize);
-        param.config.maxPageNumber = maxPage;
-        let firstStatus = currentPage == 1;
-        let lastStatus = currentPage == maxPage;
+        param.container.config.maxPageNumber = maxPage;
+        let firstStatus = currentPage >= 1;
+        let lastStatus = currentPage >= maxPage;
         let pageTypeIcon = param.config.pageTypeIcon;
         let pageSelector = new Array();
         pageSelector.push({
@@ -807,20 +832,6 @@
         param.container.showError();
         return false;
       }
-      try {
-        // 动态计算宽高度
-        setTimeout(function() {
-          syncFixedTable.call(param.container);
-        }, 0);
-      } catch (e) {
-        let info = {
-          name: "m-table",
-          message: `dynamic layout error`
-        };
-        mError.apply(info, [e]);
-        param.container.showError();
-        return false;
-      }
       if (param.config.success && typeof param.config.success == "function") {
         eval(`param.config.success(param.container, param.tableData)`);
       }
@@ -830,13 +841,71 @@
       }
       param.container.showEmpty();
     }
-    this.config = param.config;
+    try {
+      // 动态计算宽高度
+      setTimeout(function() {
+        syncFixedTable.call(param.container);
+      }, 0);
+    } catch (e) {
+      let info = {
+        name: "m-table",
+        message: `dynamic layout error`
+      };
+      mError.apply(info, [e]);
+      param.container.showError();
+      return false;
+    }
   }
 
   // 同步固定表格头的高度
   function syncFixedTable() {
     let container = this;
-    if (container.config.error || container.config.empty) {
+    let tableBody = container.shadowRoot.querySelector(".table-body");
+    let fixedBody = container.shadowRoot.querySelector(".fixed-body");
+    let mainHeader = container.shadowRoot.querySelector(".table-header");
+    let mainBody = container.shadowRoot.querySelector(".table-main");
+    let fixedTable = container.shadowRoot.querySelector(".fixed-table");
+    let tableFooter = container.shadowRoot.querySelector(".table-footer");
+    try {
+      if (!tableBody.style.minWidth) {
+        tableBody.style.minWidth = container.clientWidth + "px";
+      }
+      container.style.padding = "0 !important";
+      if (
+        tableBody.style.height ||
+        container.clientHeight >
+          tableBody.offsetHeight + tableFooter.offsetHeight
+      ) {
+        let widthScroll = false;
+        if (tableBody.clientWidth < mainBody.scrollWidth) {
+          widthScroll = true;
+        }
+        // 校准表格表头高度
+        let tableBodyHeight = container.clientHeight - tableFooter.offsetHeight;
+        tableBody.style.height = tableBodyHeight + "px";
+        fixedBody.style.height = tableBodyHeight + "px";
+        // 校准表格主体高度
+        let mainBoayHeight =
+          container.clientHeight -
+          tableFooter.offsetHeight -
+          mainHeader.offsetHeight -
+          (widthScroll ? browerScrollBarWidth : 0);
+        mainBody.style.height = mainBoayHeight + "px";
+        fixedTable.style.height = mainBoayHeight + "px";
+      }
+      container.style.padding = false;
+    } catch (e) {
+      let info = {
+        name: "m-table",
+        message: "calc table body size fail"
+      };
+      mError.apply(info, [e]);
+    }
+    if (
+      container.config == undefined ||
+      container.config.error ||
+      container.config.empty
+    ) {
       return false;
     }
     if (
@@ -845,123 +914,126 @@
     ) {
       return false;
     }
-    let renderList = container.renderList;
-    renderList.forEach(function(item, index) {
-      let thNodes = Array.from(
-        container
-          .querySelector(".m-table-main-header")
-          .querySelectorAll(`th[col-index=c${index}]`)
-      );
-      let thNode = thNodes ? thNodes[thNodes.length - 1] : null; // 标题node
-      let thFirstNode = thNodes ? thNodes[0] : null; // 标题node
-      let tdNode = container
-        .querySelector(".m-table-main-body tr[row-index=r0]")
-        .querySelector(`td[col-index=c${index}]`);
-      if (thFirstNode && thNode && tdNode) {
-        if (thFirstNode.style.width && tdNode.style.width) {
-          return false;
+    try {
+      let renderList = container.renderList;
+      renderList.forEach(function(item, index) {
+        let thNodes = Array.from(
+          container
+            .querySelector(".m-table-main-header")
+            .querySelectorAll(`th[col-index=c${index}]`)
+        );
+        let thNode = thNodes ? thNodes[thNodes.length - 1] : null; // 标题node
+        let thFirstNode = thNodes ? thNodes[0] : null; // 标题node
+        let tdNode = container
+          .querySelector(".m-table-main-body tr[row-index=r0]")
+          .querySelector(`td[col-index=c${index}]`);
+        if (thFirstNode && thNode && tdNode) {
+          if (thFirstNode.style.width && tdNode.style.width) {
+            return false;
+          }
+          let maxWidth =
+            tdNode.previousElementSibling == null ||
+            tdNode.nextElementSibling == null
+              ? 35
+              : 30;
+          if (item.width) {
+            maxWidth += parseFloat(item.width.replace("px"));
+          } else {
+            maxWidth += Math.max(
+              thNode.querySelector(".inner-cell").clientWidth,
+              tdNode.querySelector(".inner-cell").clientWidth
+            );
+          }
+          thFirstNode.style.width = maxWidth + "px";
+          tdNode.style.width = maxWidth + "px";
         }
-        let maxWidth =
-          tdNode.previousElementSibling == null ||
-          tdNode.nextElementSibling == null
-            ? 35
-            : 30;
-        if (item.width) {
-          maxWidth += parseFloat(item.width.replace("px"));
-        } else {
-          // console.log(thNode.innerText, thNode.querySelector('.inner-cell').clientWidth, tdNode.innerText, tdNode.clientWidth)
-          maxWidth += Math.max(
-            thNode.querySelector(".inner-cell").clientWidth,
-            tdNode.querySelector(".inner-cell").clientWidth
-          );
+      });
+      let fixedVisableHeaderNodes = Array.from(
+        container.querySelectorAll(".m-table-fixed-header tr:first-of-type th")
+      );
+      fixedVisableHeaderNodes.forEach(function(fixedVisableHeaderNode) {
+        let colIndex = fixedVisableHeaderNode.getAttribute("col-index");
+        let referenceNode = container.querySelector(
+          `.m-table-main-header tr[row-index=r-1] th[col-index=${colIndex}]`
+        );
+        if (referenceNode) {
+          fixedVisableHeaderNode.style.width = referenceNode.style.width;
         }
-        thFirstNode.style.width = maxWidth + "px";
-        tdNode.style.width = maxWidth + "px";
-      }
-    });
-    let fixedVisableHeaderNodes = Array.from(
-      container.querySelectorAll(".m-table-fixed-header tr:first-of-type th")
-    );
-    fixedVisableHeaderNodes.forEach(function(fixedVisableHeaderNode) {
-      let colIndex = fixedVisableHeaderNode.getAttribute("col-index");
-      let referenceNode = container.querySelector(
-        `.m-table-main-header tr[row-index=r-1] th[col-index=${colIndex}]`
+      });
+      let fixedHeaderNodes = Array.from(
+        container.querySelectorAll(
+          ".m-table-fixed-header tr:not(:first-of-type) th"
+        )
       );
-      if (referenceNode) {
-        fixedVisableHeaderNode.style.width = referenceNode.style.width;
-      }
-    });
-    let fixedHeaderNodes = Array.from(
-      container.querySelectorAll(
-        ".m-table-fixed-header tr:not(:first-of-type) th"
-      )
-    );
-    fixedHeaderNodes.forEach(function(fixedHeaderNode) {
-      let rowIndex = fixedHeaderNode.parentNode.getAttribute("row-index");
-      let colIndex = fixedHeaderNode.getAttribute("col-index");
-      let referenceNode = container.querySelector(
-        `.m-table-main-header tr[row-index=${rowIndex}] th[col-index=${colIndex}]`
+      fixedHeaderNodes.forEach(function(fixedHeaderNode) {
+        let rowIndex = fixedHeaderNode.parentNode.getAttribute("row-index");
+        let colIndex = fixedHeaderNode.getAttribute("col-index");
+        let referenceNode = container.querySelector(
+          `.m-table-main-header tr[row-index=${rowIndex}] th[col-index=${colIndex}]`
+        );
+        if (referenceNode) {
+          fixedHeaderNode.style.height = referenceNode.clientHeight + "px";
+        }
+      });
+      let fixedBodyHorizontalNodes = Array.from(
+        container.querySelectorAll(".m-table-fixed-body tr:first-of-type td")
       );
-      if (referenceNode) {
-        fixedHeaderNode.style.height = referenceNode.clientHeight + "px";
-      }
-    });
-    let fixedBodyHorizontalNodes = Array.from(
-      container.querySelectorAll(".m-table-fixed-body tr:first-of-type td")
-    );
-    fixedBodyHorizontalNodes.forEach(function(fixedBodyHorizontalNode) {
-      let colIndex = fixedBodyHorizontalNode.getAttribute("col-index");
-      let referenceNode = container.querySelector(
-        `.m-table-main-body tr:first-of-type td[col-index=${colIndex}]`
+      fixedBodyHorizontalNodes.forEach(function(fixedBodyHorizontalNode) {
+        let colIndex = fixedBodyHorizontalNode.getAttribute("col-index");
+        let referenceNode = container.querySelector(
+          `.m-table-main-body tr:first-of-type td[col-index=${colIndex}]`
+        );
+        if (referenceNode) {
+          fixedBodyHorizontalNode.style.width =
+            referenceNode.clientWidth + "px";
+        }
+      });
+      let fixedBodyVerticalNodes = Array.from(
+        container.querySelectorAll(".m-table-fixed-body td:first-of-type")
       );
-      if (referenceNode) {
-        fixedBodyHorizontalNode.style.width = referenceNode.clientWidth + "px";
-      }
-    });
-    let fixedBodyVerticalNodes = Array.from(
-      container.querySelectorAll(".m-table-fixed-body td:first-of-type")
-    );
-    fixedBodyVerticalNodes.forEach(function(fixedBodyVerticalNode) {
-      let rowIndex = fixedBodyVerticalNode.parentNode.getAttribute("row-index");
-      let referenceNode = container.querySelector(
-        `.m-table-main-body tr[row-index=${rowIndex}] td`
+      fixedBodyVerticalNodes.forEach(function(fixedBodyVerticalNode) {
+        let rowIndex = fixedBodyVerticalNode.parentNode.getAttribute(
+          "row-index"
+        );
+        let referenceNode = container.querySelector(
+          `.m-table-main-body tr[row-index=${rowIndex}] td`
+        );
+        if (referenceNode) {
+          fixedBodyVerticalNode.style.height =
+            referenceNode.offsetHeight + "px";
+        }
+      });
+      let fixedHeader = container.shadowRoot.querySelector(
+        ".fixed-table-header"
       );
-      if (referenceNode) {
-        fixedBodyVerticalNode.style.height = referenceNode.offsetHeight + "px";
+      let scrollDiff = mainBody.scrollWidth - tableBody.clientWidth;
+      if (
+        scrollDiff > 0 &&
+        tableBody.scrollLeft != scrollDiff &&
+        !fixedBody.classList.contains("more")
+      ) {
+        fixedBody.classList.add("more");
       }
-    });
-    let tableBody = container.shadowRoot.querySelector(".table-body");
-    let mainHeader = container.shadowRoot.querySelector(".table-header");
-    let mainBody = container.shadowRoot.querySelector(".table-main");
-    let fixedBody = container.shadowRoot.querySelector(".fixed-body");
-    let fixedHeader = container.shadowRoot.querySelector(".fixed-table-header");
-    let fixedTable = container.shadowRoot.querySelector(".fixed-table");
-    let tableFooter = container.shadowRoot.querySelector(".table-footer");
-    let scrollDiff = mainBody.scrollWidth - tableBody.clientWidth;
-    if (
-      scrollDiff > 0 &&
-      tableBody.scrollLeft != scrollDiff &&
-      !fixedBody.classList.contains("more")
-    ) {
-      fixedBody.classList.add("more");
-    }
-    if (tableBody.scrollLeft == scrollDiff) {
-      fixedBody.classList.remove("more");
-    }
-    if (container.scrollHeight > container.clientHeight) {
-      let scrollHeight =
-        tableBody.offsetHeight -
-        mainHeader.clientHeight -
-        mainBody.clientHeight;
-      mainBody.style.height =
-        container.clientHeight -
-        mainHeader.clientHeight -
-        tableFooter.clientHeight -
-        scrollHeight +
-        "px";
-      fixedTable.style.height = mainBody.style.height;
-      mainHeader.style.overflowY = "scroll";
-      fixedHeader.style.overflowY = "scroll";
+      if (tableBody.scrollLeft == scrollDiff) {
+        fixedBody.classList.remove("more");
+      }
+      if (container.scrollHeight > container.clientHeight) {
+        let scrollHeight =
+          tableBody.offsetHeight -
+          mainHeader.clientHeight -
+          mainBody.clientHeight;
+        mainBody.style.height =
+          container.clientHeight -
+          mainHeader.clientHeight -
+          tableFooter.clientHeight -
+          scrollHeight +
+          "px";
+        fixedTable.style.height = mainBody.style.height;
+        mainHeader.style.overflowY = "scroll";
+        fixedHeader.style.overflowY = "scroll";
+      }
+    } catch (e) {
+      return false;
     }
   }
 
@@ -1031,7 +1103,6 @@
       if (this.hasAttribute("value") == false) {
         this.value = this.innerText.trim();
       }
-      self.parentNode.calcLabelSize(); // 计算label的尺寸
       this.addEventListener("mouseenter", function(e) {
         if (self.parentNode.listCloseDelay) {
           clearTimeout(self.parentNode.listCloseDelay);
@@ -1051,6 +1122,16 @@
         return false;
       }
       this.selected = true;
+    }
+
+    connectedCallback() {
+      if (!this.previousElementSibling || this.hasAttribute("selected")) {
+        this.parentElement.resetSelect();
+      }
+      this.style.padding = "0 !important";
+      let optionWidth = this.clientWidth;
+      this.style.padding = false;
+      this.parentNode.calcLabelSize(optionWidth); // 计算label的尺寸
     }
 
     get value() {
@@ -1119,155 +1200,159 @@
       for (let i = 0, len = nodeArray.length; i < len - 1; i++) {
         nodeArray[i].removeAttribute("selected");
       }
+      if (nodeSelected && !nodeSelected.hasAttribute("selected")) {
+        nodeSelected.setAttribute("selected", "");
+      }
       let html = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                    :host(m-select) {
-                        cursor: default;
-                        position: relative;
-                        display: inline-flex;
-                    }
-                    :host(m-select) .m-select {
-                        width: fit-content;
-                        max-width: 240px;
-                        padding: 0 15px;
-                        color: var(--m-select-color, #8f8f8f);
-                        box-sizing: border-box;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-                    :host(m-select) .m-select.disabled,
-                    :host(m-select) .m-select.active.disabled {
-                        color:  var(--m-select-disable-color, #c8c8c8);
-                        cursor: not-allowed;
-                    }
-                    :host(m-select) .m-select.active {
-                        color: var(--m-select-active-color, #000);
-                    }
-                    :host(m-select) .m-select span,
-                    :host(m-select) .m-select i {
-                        line-height: 1;
-                    }
-                    :host(m-select) .m-select span {
-                        max-width: calc(100% - 24px);
-                        white-space: nowrap;
-                        text-overflow: ellipsis;
-                        overflow: hidden;
-                    }
-                    :host(m-select) .m-select i {
-                        margin-left: 8px;
-                        transition: transform 200ms linear;
-                    }
-                    :host(m-select) .m-select i.arrow-rotate {
-                        transform: rotateX(180deg);
-                    }
-                    :host(m-select) .m-select-option {
-                        width: fit-content;
-                        max-width: 280px;
-                        height: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        transition: height .3s ease, opacity .2s linear;
-                        position: fixed;
-                        z-index: 0;
-                    }
-                    :host(m-select) .m-select-option.active {
-                        opacity: 1;
-                    }
-                    :host(m-select) .m-select-option .arrow-up {
-                        content: "";
-                        width: 100%;
-                        height: 4px;
-                        background-image: url("${url}images/select_arrow.png");
-                        background-repeat: no-repeat;
-                        background-position: center 0;
-                        display: block;
-                    }
-                    :host(m-select) .m-select-option.rotate .arrow-up {
-                        display: none;
-                    }
-                    :host(m-select) .m-select-option .arrow-down {
-                        content: "";
-                        width: 100%;
-                        height: 4px;
-                        background-image: url("${url}images/select_arrow.png");
-                        background-repeat: no-repeat;
-                        background-position: center 0;
-                        transform: rotate(180deg);
-                        display: none;
-                    }
-                    :host(m-select) .m-select-option.rotate .arrow-down {
-                        display: block;
-                    }
-                    :host(m-select) .m-select-option .option-list {
-                        width: 100%;
-                        height: fit-content;
-                        padding: 8px 0;
-                        list-style: none;
-                        border-radius: 4px;
-                        background-color: #fff;
-                        box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
-                        box-sizing: border-box;
-                        position: relative;
-                    }
-                    :host(m-select) .m-select-option.rotate .option-list {
-                        box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
-                    }
-                    :host(m-select) .m-select-option .option-list > div:first-child {
-                        width: 100%;
-                        height: fit-content;
-                        max-height: 180px;
-                        overflow: hidden;
-                        position: relative;
-                    }
-                    :host(m-select) .m-select-option .option-list .scroll-bar {
-                        content: "";
-                        width: 6px;
-                        height: 0;
-                        border-radius: 3px;
-                        background-color: #0359ff;
-                        position: absolute;
-                        top: 0;
-                        right: 0;
-                    }
-                    :host(m-select) .m-select-option ::slotted(m-option) {
-                        width: 100%;
-                        padding: 0 12px;
-                        color: var(--m-option-color, #333);
-                        white-space: nowrap;
-                        line-height: 30px;
-                        text-overflow: ellipsis;
-                        list-style: none;
-                        overflow: hidden;
-                        box-sizing: border-box;
-                        display: block;
-                    }
-                    :host(m-select) .m-select-option ::slotted(m-option:hover),
-                    :host(m-select) .m-select-option ::slotted(m-option[selected]) {
-                        color: var(--m-option-active-color, #0359ff);
-                        background-color: var(--m-option-active-bg, #f3f3f3);
-                    }
-                    :host(m-select) .m-select-option ::slotted(m-option[disabled]),
-                    :host(m-select) .m-select-option ::slotted(m-option[disabled]:hover) {
-                        color: var(--m-option-disable-color, #c8c8c8);
-                        background: none;
-                        cursor: not-allowed;
-                    }
-                </style>
-                <div class="m-select${disabled ? " disabled" : ""}">
-                    <span>${nodeSelected.innerHTML || " "}</span>
-                    <i class="m-iconfont ming-icon-arrow-down"></i>
-                </div>
-                <div class="m-select-option">
-                    <div class="arrow-up"></div>
-                    <div class="option-list">
-                        <div><slot></slot></div>
-                        <div class="scroll-bar"></div>
-                    </div>
-                    <div class="arrow-down"></div>
-                </div>
-            `;
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+            :host(m-select) {
+                cursor: default;
+                position: relative;
+                display: inline-flex;
+            }
+            :host(m-select) .m-select {
+                width: fit-content;
+                max-width: 240px;
+                padding: var(--m-select-padding, 0 15px);
+                color: var(--m-select-color, #8f8f8f);
+                box-sizing: border-box;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            :host(m-select) .m-select.disabled,
+            :host(m-select) .m-select.active.disabled {
+                color:  var(--m-select-disable-color, #c8c8c8);
+                cursor: not-allowed;
+            }
+            :host(m-select) .m-select.active {
+                color: var(--m-select-active-color, #000);
+            }
+            :host(m-select) .m-select span,
+            :host(m-select) .m-select i {
+                line-height: 1;
+            }
+            :host(m-select) .m-select span {
+                max-width: calc(100% - 24px);
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+            :host(m-select) .m-select i {
+                margin-left: 8px;
+                transition: transform 200ms linear;
+            }
+            :host(m-select) .m-select i.arrow-rotate {
+                transform: rotateX(180deg);
+            }
+            :host(m-select) .m-select-option {
+                width: fit-content;
+                max-width: 240px;
+                height: 0;
+                padding: 0;
+                overflow: hidden;
+                transition: height .3s ease, opacity .2s linear;
+                position: fixed;
+                z-index: 0;
+            }
+            :host(m-select) .m-select-option.active {
+                opacity: 1;
+            }
+            :host(m-select) .m-select-option .arrow-up {
+                content: "";
+                width: 100%;
+                height: 4px;
+                background-image: url("${url}images/select_arrow.png");
+                background-repeat: no-repeat;
+                background-position: center 0;
+                display: block;
+            }
+            :host(m-select) .m-select-option.rotate .arrow-up {
+                display: none;
+            }
+            :host(m-select) .m-select-option .arrow-down {
+                content: "";
+                width: 100%;
+                height: 4px;
+                background-image: url("${url}images/select_arrow.png");
+                background-repeat: no-repeat;
+                background-position: center 0;
+                transform: rotate(180deg);
+                display: none;
+            }
+            :host(m-select) .m-select-option.rotate .arrow-down {
+                display: block;
+            }
+            :host(m-select) .m-select-option .option-list {
+                width: 100%;
+                height: fit-content;
+                padding: 8px 0;
+                list-style: none;
+                border-radius: 4px;
+                background-color: #fff;
+                box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
+                box-sizing: border-box;
+                position: relative;
+            }
+            :host(m-select) .m-select-option.rotate .option-list {
+                box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
+            }
+            :host(m-select) .m-select-option .option-list > div:first-child {
+                width: 100%;
+                height: fit-content;
+                max-height: 180px;
+                overflow: hidden;
+                position: relative;
+            }
+            :host(m-select) .m-select-option .option-list .scroll-bar {
+                content: "";
+                width: 6px;
+                height: 0;
+                border-radius: 3px;
+                background-color: #0359ff;
+                position: absolute;
+                top: 0;
+                right: 0;
+                margin-top: 8px;
+            }
+            :host(m-select) .m-select-option ::slotted(m-option) {
+                width: 100%;
+                padding: 0 12px;
+                color: var(--m-option-color, #333);
+                white-space: nowrap;
+                line-height: 30px;
+                text-overflow: ellipsis;
+                list-style: none;
+                overflow: hidden;
+                box-sizing: border-box;
+                display: block;
+            }
+            :host(m-select) .m-select-option ::slotted(m-option:hover),
+            :host(m-select) .m-select-option ::slotted(m-option[selected]) {
+                color: var(--m-option-active-color, #0359ff);
+                background-color: var(--m-option-active-bg, #f3f3f3);
+            }
+            :host(m-select) .m-select-option ::slotted(m-option[disabled]),
+            :host(m-select) .m-select-option ::slotted(m-option[disabled]:hover) {
+                color: var(--m-option-disable-color, #c8c8c8);
+                background: none;
+                cursor: not-allowed;
+            }
+        </style>
+        <div class="m-select${disabled ? " disabled" : ""}">
+            <span>${nodeSelected ? nodeSelected.innerHTML || " " : " "}</span>
+            <i class="m-iconfont ming-icon-arrow-down"></i>
+        </div>
+        <div class="m-select-option">
+            <div class="arrow-up"></div>
+            <div class="option-list">
+                <div><slot></slot></div>
+                <div class="scroll-bar"></div>
+            </div>
+            <div class="arrow-down"></div>
+        </div>
+    `;
       shadow.innerHTML = html;
       this.addEventListener("mouseenter", this.addHoverState);
       this.addEventListener("mouseout", function(e) {
@@ -1324,6 +1409,23 @@
         });
     }
 
+    resetSelect() {
+      let nodeArray = Array.from(this.querySelectorAll("m-option[selected]"));
+      let nodeSelected =
+        nodeArray.length > 0
+          ? nodeArray[nodeArray.length - 1]
+          : this.querySelector(`m-option`);
+      for (let i = 0, len = nodeArray.length; i < len - 1; i++) {
+        nodeArray[i].removeAttribute("selected");
+      }
+      if (nodeSelected && !nodeSelected.hasAttribute("selected")) {
+        nodeSelected.setAttribute("selected", "");
+      }
+      this.shadowRoot.querySelector(".m-select span").innerHTML = nodeSelected
+        ? nodeSelected.innerHTML || " "
+        : " ";
+    }
+
     addHoverState() {
       if (this.disabled) {
         return false;
@@ -1371,18 +1473,13 @@
       this.shadowRoot.querySelector(".m-select-option").style.zIndex = 0;
     }
 
-    calcLabelSize() {
+    calcLabelSize(optionWidth) {
       let self = this;
-      self.optionWidth = 0;
-      let optionArray = Array.from(this.querySelectorAll("m-option"));
-      optionArray.forEach(function(node) {
-        node.style.width = "fit-content";
-        self.optionWidth =
-          self.optionWidth > node.clientWidth
-            ? self.optionWidth
-            : node.clientWidth;
-        node.style.width = "100%";
-      });
+      if (self.optionWidth == undefined) {
+        self.operationWidth = 0;
+      }
+      self.optionWidth =
+        self.optionWidth > optionWidth ? self.optionWidth : optionWidth;
       this.shadowRoot.querySelector(".m-select").style.width =
         self.optionWidth + 32 + "px";
     }
@@ -1489,6 +1586,314 @@
     }
   }
 
+  // m-input 定义
+  class mInput extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 组件初始化
+      let self = this;
+      let inputType = this.getAttribute("type") || "text";
+      let maxlength = this.getAttribute("maxlength") || "16";
+      let placeholder = this.getAttribute("placeholder") || "";
+      let disabled = this.hasAttribute("disabled");
+      let value = this.getAttribute("value") || "";
+      let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+      shadow.resetStyleInheritance = true; // 重置样式
+      let html = `
+        <style type="text/css">
+        :host(m-input) {
+          display: inline-flex;
+        }
+        :host(m-input) > div {
+          position: relative;
+        }
+        :host(m-input) > div::after {
+          content: "";
+          width: 0;
+          height: 1px;
+          background-color: #0359ff;
+          transition: width .3s linear;
+          position: absolute;
+          bottom: 0;
+          left: 0;
+        }
+        :host(m-input) > div.active::after {
+          width: 100%;
+        }
+        :host(m-input) input {
+          width: var(--m-input-width, auto);
+          padding: 0 5px;
+          color: var(--m-input-color, #5f5f5f);
+          line-height: var(--m-input-line-height, 30px);
+          border: none;
+          outline: none;
+          background: none;
+          border-bottom: 1px solid #e6e6e6;
+          box-sizing: border-box;
+        }
+        :host(m-input) input:hover,
+        :host(m-input) input:focus {
+          color: #000;
+        }
+        :host(m-input) input[disabled],
+        :host(m-input) input[disabled]:hover,
+        :host(m-input) input[disabled]:focus {
+          color: #e6e6e6;
+          cursor: not-allowed;
+          border-bottom: 1px solid #f6f6f6;
+        }
+        </style>
+        <div>
+          <input type="${inputType}" maxlength=${maxlength} value="${value}" placeholder="${placeholder}" ${
+        disabled ? " disabled" : ""
+      }>
+        </div>
+      `;
+      shadow.innerHTML = html;
+      this.shadowRoot
+        .querySelector("input")
+        .addEventListener("focus", function() {
+          self.focusEventHandler.call(self);
+        });
+      this.shadowRoot
+        .querySelector("input")
+        .addEventListener("blur", function() {
+          self.blurEventHandler.call(self);
+        });
+    }
+
+    focusEventHandler() {
+      // 输入框获得焦点
+      this.shadowRoot.querySelector("div").classList.add("active");
+      if (this.parentNode.nodeName == "M-FORM-ITEM") {
+        this.parentNode.focus();
+      }
+    }
+
+    blurEventHandler() {
+      // 输入框失去焦点
+      this.shadowRoot.querySelector("div").classList.remove("active");
+      if (this.parentNode.nodeName == "M-FORM-ITEM") {
+        if (this.value == undefined || this.value == null || this.value == "") {
+          this.parentNode.blurEmpty();
+        } else {
+          this.parentNode.blur();
+        }
+      }
+    }
+
+    focus() {
+      this.shadowRoot.querySelector("input").focus();
+    }
+
+    blur() {
+      this.shadowRoot.querySelector("input").blur();
+    }
+
+    get value() {
+      return this.shadowRoot.querySelector("input").value;
+    }
+
+    set value(value) {
+      if (!value) {
+        value = "";
+      }
+      this.setAttribute("value", value);
+      this.shadowRoot.querySelector("input").value = value;
+    }
+
+    get placeholder() {
+      return this.getAttribute("placeholder") || "";
+    }
+
+    set placeholder(value) {
+      if (value) {
+        this.setAttribute("value", value);
+        this.shadowRoot.querySelector("input").setAttribute("value", value);
+      } else {
+        this.setAttribute("value", "");
+        this.shadowRoot.querySelector("input").setAttribute("value", "");
+      }
+    }
+
+    get disabled() {
+      return this.hasAttribute("disabled");
+    }
+
+    set disable(value) {
+      if (value) {
+        this.setAttribute("disabled", "");
+        this.shadowRoot.querySelector("input").setAttribute("disabled");
+      } else {
+        this.removeAttribute("disabled");
+        this.shadowRoot.querySelector("input").removeAttribute("disabled");
+      }
+    }
+
+    get type() {
+      return this.getAttribute("type") || "text";
+    }
+
+    set type(value) {
+      if (
+        value != "text" &&
+        value != "password" &&
+        value != "number" &&
+        value != "date"
+      ) {
+        value = "text";
+      }
+      this.setAttribute("type", value);
+      this.shadowRoot.querySelector("input").setAttribute("type", value);
+    }
+
+    get maxlength() {
+      return this.getAttribute("maxlength") || "16";
+    }
+
+    set maxlength(value) {
+      try {
+        value = parseInt(value);
+        this.setAttribute("maxlength", value);
+        this.shadowRoot.querySelector("input").setAttribute("maxlength", value);
+      } catch (e) {
+        return false;
+      }
+    }
+  }
+
+  // m-form-item 定义
+  class mFormItem extends HTMLElement {
+    constructor() {
+      super();
+      this.initVerification();
+      this.initComponent();
+    }
+
+    initVerification() {
+      // 合法性验证
+      if (this.children.length != 1) {
+        let param = {
+          name: "m-form-item",
+          message: "this component should have only one child node"
+        };
+        mError.apply(param, [this]);
+      }
+      if (
+        this.children[0].nodeName != "M-INPUT" &&
+        this.children[0].nodeName != "M-SELECT"
+      ) {
+        let param = {
+          name: "m-form-item",
+          message:
+            "this component's child node should be <m-select> or <m-input>"
+        };
+        mError.apply(param, [this]);
+      }
+    }
+
+    initComponent() {
+      // 组件初始化
+      let self = this;
+      let name = self.getAttribute("name") || "name";
+      let value = self.children[0].value;
+      let empty = false;
+      switch (self.children[0].nodeName) {
+        case "M-INPUT":
+          if (value == undefined || value == null || value == "") {
+            empty = true;
+          }
+          break;
+        case "M-SELECT":
+          break;
+      }
+      let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+      shadow.resetStyleInheritance = true; // 重置样式
+      let html = `
+        <style type="text/css">
+          :host(m-form-item) {
+            width: fit-content;
+            height: auto;
+            display: inline-flex;
+          }
+          :host(m-form-item) .item {
+            width: fit-content;
+            height: fit-content;
+            padding-top: 20px;
+            position: relative;
+          }
+          :host(m-form-item) .name {
+            padding-left: 5px;
+            cursor: default;
+            transition: all .3s linear;
+            position: absolute;
+            left: 0;
+            z-index: 50;
+          }
+          :host(m-form-item) :not(.empty) .name {
+            color: #b3b3b3;
+            font-size: 12px;
+            line-height: 15px;
+            top: 0;
+          }
+          :host(m-form-item) .active .name {
+            color: #0359ff;
+          }
+          :host(m-form-item) .empty .name {
+            color: #b3b3b3;
+            font-size: inherit;
+            line-height: 30px;
+            top: 20px;
+          }
+          :host(m-form-item) ::slotted(m-select) {
+            height: 30px;
+            border-bottom: 1px solid #e6e6e6;
+            --m-select-padding: 0 5px;
+          }
+          :host(m-form-item) ::slotted(m-select[disabled]) {
+            border-bottom: 1px solid #f6f6f6;
+          }
+        </style>
+        <div class="item${empty ? " empty" : ""}">
+          <div class="name">${name}</div>
+          <div>
+            <slot></slot>
+          </div>
+        </div>
+      `;
+      shadow.innerHTML = html;
+      switch (self.children[0].nodeName) {
+        case "M-INPUT":
+          this.shadowRoot
+            .querySelector(".name")
+            .addEventListener("click", function() {
+              self.children[0].focus();
+            });
+          break;
+        case "M-SELECT":
+          break;
+      }
+    }
+
+    focus() {
+      this.shadowRoot.querySelector(".item").classList.add("active");
+      this.shadowRoot.querySelector(".item").classList.remove("empty");
+    }
+
+    blurEmpty() {
+      this.shadowRoot.querySelector(".item").classList.add("empty");
+      this.shadowRoot.querySelector(".item").classList.remove("active");
+    }
+
+    blur() {
+      this.shadowRoot.querySelector(".item").classList.remove("active");
+    }
+  }
+
   // m-operation 定义
   class mOperation extends HTMLElement {
     constructor() {
@@ -1511,7 +1916,6 @@
     initComponent() {
       // 组件初始化
       let self = this;
-      this.parentNode.calcLabelSize(); // 重新计算列表宽度和位置
       this.addEventListener("mouseenter", function(e) {
         if (self.parentNode.listCloseDelay) {
           clearTimeout(self.parentNode.listCloseDelay);
@@ -1537,6 +1941,13 @@
           mError.apply(error, [this]);
         }
       }
+    }
+
+    connectedCallback() {
+      this.style.padding = "0 !important";
+      let operationWidth = this.clientWidth;
+      this.style.padding = false;
+      this.parentNode.calcLabelSize(operationWidth); // 计算label的尺寸
     }
 
     get operation() {
@@ -1795,28 +2206,25 @@
       this.shadowRoot.querySelector(".m-operation-list").style.zIndex = 0;
     }
 
-    calcLabelSize() {
+    calcLabelSize(operationWidth) {
       // 计算列表宽度
       let self = this;
-      self.optionWidth = 0;
-      let optionArray = Array.from(this.querySelectorAll("m-operation"));
-      optionArray.forEach(function(node) {
-        node.style.width = "fit-content";
-        self.optionWidth =
-          self.optionWidth > node.clientWidth
-            ? self.optionWidth
-            : node.clientWidth;
-        node.style.width = "100%";
-      });
+      if (self.operationWidth == undefined) {
+        self.operationWidth = 0;
+      }
+      self.operationWidth =
+        self.operationWidth > operationWidth
+          ? self.operationWidth
+          : operationWidth;
       this.shadowRoot.querySelector(".m-operation-list").style.width =
-        self.optionWidth + 32 + "px";
+        self.operationWidth + 32 + "px";
     }
 
     calcWidthAndPosition() {
       let self = this;
-      self.optionWidth = Math.max(self.optionWidth, this.offsetWidth);
+      self.operationWidth = Math.max(self.operationWidth, this.offsetWidth);
       this.shadowRoot.querySelector(".m-operation-list").style.width =
-        self.optionWidth + "px";
+        self.operationWidth + "px";
       let componentPosition = self.getBoundingClientRect();
       let position = {
         top: componentPosition.top + componentPosition.height,
@@ -1850,7 +2258,7 @@
         this.shadowRoot.querySelector(".m-operation-list").style.padding =
           "12px 8px 8px";
       }
-      if (position.left + self.optionWidth >= window.innerWidth) {
+      if (position.left + self.operationWidth >= window.innerWidth) {
         this.shadowRoot.querySelector(".m-operation-list").style.left = null;
         this.shadowRoot.querySelector(".m-operation-list").style.right =
           position.right + "px";
@@ -1870,29 +2278,6 @@
           barHeight + "px";
       }
     }
-
-    /*calcWidthAndPosition() {
-      // 计算列表宽度和位置
-      let self = this;
-      self.optionWidth = 0;
-      let optionArray = Array.from(this.querySelectorAll("m-operation"));
-      optionArray.forEach(function(node) {
-        self.optionWidth =
-          self.optionWidth > node.clientWidth
-            ? self.optionWidth
-            : node.clientWidth;
-      });
-      let tipWidth = this.shadowRoot.querySelector(".m-operation-tip")
-        .clientWidth;
-      this.shadowRoot.querySelector(".m-operation-list").style.width =
-        self.optionWidth + "px";
-      this.shadowRoot.querySelector(".m-operation-list").style.minWidth =
-        tipWidth + "px";
-      let left = (tipWidth - self.optionWidth) / 2;
-      left = (left > 0 ? 0 : left) - 8;
-      this.shadowRoot.querySelector(".m-operation-list").style.left =
-        left + "px";
-    }*/
 
     set disabled(value) {
       if (value) {
@@ -3377,6 +3762,8 @@
 
   window.customElements.define("m-select", mSelect); // m-select注册
   window.customElements.define("m-option", mOption); // m-option注册
+  window.customElements.define("m-input", mInput); // m-input注册
+  window.customElements.define("m-form-item", mFormItem); // m-form-item注册
   window.customElements.define("m-operation-list", mOperationList); // m-option注册
   window.customElements.define("m-operation", mOperation); // m-operation注册
   window.customElements.define("m-function", mFunction); // m-function注册

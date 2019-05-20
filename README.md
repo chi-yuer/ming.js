@@ -70,6 +70,41 @@
 
 
 
+### m-input
+
+**属性**
+
+-   **value:** 输入框的值
+-   **disabled:** 是否禁用输入框
+-   **placeholder:** 提示文字
+-   **type:** 文本框类型
+-   **maxlength:** 最长字符长度限制
+
+**样式**
+
+-   **--m-input-width：** 输入框的宽度
+-   **--m-input-line-height：** 输入框的行高
+-   **--m-input-color：** 输入框为文字默认颜色
+-   **--m-input-border-color：** 输入框的默认边框颜色
+-   **--m-input-active-color：** 输入框的激活文字颜色
+-   **--m-input-active-border-color：** 输入框的激活边框颜色
+-   **--m-input-disable-color：** 输入框的禁用文字颜色
+-   **--m-input-disable-border-color：** 输入框的禁用边框颜色
+
+**值**
+
+-   **value：** 输入框的内容
+-   **placeholder：** 输入框的提示文字
+-   **disabled：** 是否禁用数据框
+-   **type：** 输入框的内容类型
+-   **maxlength：** 输入框的字符长度限制
+
+**方法**
+
+-   无
+
+
+
 ### m-operation-list
 
 **属性**
@@ -284,6 +319,27 @@
 
 
 
+### m-form-item
+
+**属性**
+
+-   无
+
+**样式**
+
+-   **--m-form-item-color：** 文字颜色
+-   **--m-form-item-active-color：** 选中后的文字颜色
+
+**值**
+
+-   无
+
+**方法**
+
+-   无
+
+
+
 ## 使用
 
 ### 引入
@@ -312,6 +368,24 @@
 **预览**
 
 ![select 的预览图](./previews/preview_zh_select.png)
+
+
+
+### input
+
+```html
+<m-input type="text"></m-input>
+<m-input type="text" disabled></m-input>
+<m-input type="text" value="一家公司的名称"></m-input>
+<m-input type="text" value="一家公司的名称" disabled></m-input>
+<m-input type="text" value="一家公司的名称"></m-input>
+```
+
+**预览**
+
+![input 的预览图](./previews/preview_zh_input.png)
+
+
 
 ### operation-list
 
@@ -469,6 +543,42 @@
 ```
 
 ![table 的预览图](./previews/preview_zh_table.png)
+
+
+### form-item
+
+```html
+<m-form-item name="企业名称">
+    <m-input type="text" disabled></m-input>
+</m-form-item>
+<m-form-item name="企业名称">
+    <m-input type="text"></m-input>
+</m-form-item>
+<m-form-item name="企业名称">
+    <m-input type="text"></m-input>
+</m-form-item>
+<m-form-item name="企业名称">
+    <m-input type="text" value="一个企业的名称"></m-input>
+</m-form-item>
+<m-form-item name="企业名称">
+    <m-select>
+        <m-option value="1">选项 1</m-option>
+        <m-option value="2">选项 2</m-option>
+        <m-option value="3">选项 3</m-option>
+        <m-option value="4" selected>选项 4</m-option>
+        <m-option value="5" disabled>选项 5</m-option>
+        <m-option value="6">选项 6</m-option>
+        <m-option value="7">选项 7</m-option>
+        <m-option value="8">选项 8</m-option>
+    </m-select>
+</m-form-item>
+```
+
+**预览**
+
+![form-item 的预览图](./previews/preview_zh_form_item.png)
+
+
 
 
 

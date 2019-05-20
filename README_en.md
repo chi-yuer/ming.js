@@ -30,7 +30,7 @@
 
 -   **--m-select-color:** default color of select 
 -   **--m-select-disable-color:** color of select when disabled
--   **--m-select-active-color:**  color of select wnen hovered
+-   **--m-select-active-color:**  color of select when hovered
 -   **--m-option-color:**  default color of option
 -   **--m-option-active-color:**  color of option when actived
 -   **--m-option-active-bg:**  background color of option when actived
@@ -63,6 +63,41 @@
 -   **value:** options value (default value is options name)
 -   **disabled:** whether to disable option
 -   **selected:** whether to select option
+
+**Methods**
+
+-   none
+
+
+
+### m-input
+
+**Attributes**
+
+-   **value:** value of the input
+-   **disabled:** whether to disable the input
+-   **placeholder:** placeholder of the input
+-   **type:** type of the input
+-   **maxlength:** maxlength of the input
+
+**Styles**
+
+-   **--m-input-width：** width of the input
+-   **--m-input-line-height：** line height of the input
+-   **--m-input-color：** default color of the input
+-   **--m-input-border-color：** defaulut boder color of the input
+-   **--m-input-active-color：** color of input when focused
+-   **--m-input-active-border-color：** border color of input when focused
+-   **--m-input-disable-color：** color of input when disabled
+-   **--m-input-disable-border-color：** border color of input when disabled
+
+**Values**
+
+-   **value：** value of the input
+-   **placeholder：** placeholder of the input
+-   **disabled：** whether to disable the input
+-   **type：** type of the input
+-   **maxlength：** maxlength of the input
 
 **Methods**
 
@@ -284,6 +319,27 @@
 
 
 
+### m-form-item
+
+**Attributes**
+
+-   无
+
+**Styles**
+
+-   **--m-form-item-color：** default color of label
+-   **--m-form-item-active-color：** color of label when focused
+
+**Values**
+
+-   无
+
+**Methods**
+
+-   无
+
+
+
 ## Usage
 
 ### import
@@ -312,6 +368,24 @@
 **preview**
 
 ![Preview of select](./previews/preview_select.png)
+
+
+
+### input
+
+```html
+<m-input type="text"></m-input>
+<m-input type="text" disabled></m-input>
+<m-input type="text" value="one company name"></m-input>
+<m-input type="text" value="one company name" disabled></m-input>
+<m-input type="text" value="one company name"></m-input>
+```
+
+**preview**
+
+![Preview of input](./previews/preview_input.png)
+
+
 
 ### operation-list
 
@@ -469,6 +543,41 @@
 ```
 
 ![Preview of table](./previews/preview_table.png)
+
+
+
+### form-item
+
+```html
+<m-form-item name="company name">
+    <m-input type="text" disabled></m-input>
+</m-form-item>
+<m-form-item name="company name">
+    <m-input type="text"></m-input>
+</m-form-item>
+<m-form-item name="company name">
+    <m-input type="text"></m-input>
+</m-form-item>
+<m-form-item name="company name">
+    <m-input type="text" value="the name of company"></m-input>
+</m-form-item>
+<m-form-item name="company name">
+    <m-select>
+        <m-option value="1">option 1</m-option>
+        <m-option value="2">option 2</m-option>
+        <m-option value="3">option 3</m-option>
+        <m-option value="4" selected>option 4</m-option>
+        <m-option value="5" disabled>option 5</m-option>
+        <m-option value="6">option 6</m-option>
+        <m-option value="7">option 7</m-option>
+        <m-option value="8">option 8</m-option>
+    </m-select>
+</m-form-item>
+```
+
+**preview**
+
+![Preview of form-item](./previews/preview_form_item.png)
 
 
 
