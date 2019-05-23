@@ -22,6 +22,7 @@
     window.customElements.get("m-select") ||
     window.customElements.get("m-option") ||
     window.customElements.get("m-input") ||
+    window.customElements.get("m-switch") ||
     window.customElements.get("m-form-item") ||
     window.customElements.get("m-operation-list") ||
     window.customElements.get("m-operation") ||
@@ -251,6 +252,48 @@
       }
     }, spacingTime);
   };
+
+  // 顺序递归向目标元素插入script
+  function insertScript(scriptStrList, obj) {
+    if (Array.isArray(scriptStrList) && scriptStrList.length) {
+      let scriptItem = scriptStrList[0];
+      let scriptEle = document.createElement("script");
+      let src = scriptItem.match(new RegExp(/src="[^>]*"/g));
+      let content = scriptItem
+        .replace(/<script[^>]*>/g, "")
+        .replace("</script>", "");
+      scriptEle.setAttribute("type", "text/javascript");
+      if (src && src[0]) {
+        scriptEle.setAttribute(
+          "src",
+          src[0].replace('src="', "").replace('"', "")
+        );
+      }
+      if (content) {
+        scriptEle.text = content;
+      }
+      obj.appendChild(scriptEle);
+      if (scriptEle.readyState) {
+        // ie中的准备状态
+        scriptEle.onreadystatechange = function() {
+          if (
+            scriptEle.readyState == "loaded" ||
+            scriptEle.readyState == "complete"
+          ) {
+            scriptEle.onreadystatechange = null;
+            scriptStrList.splice(0, 1);
+            insertScript(scriptStrList, obj);
+          }
+        };
+      } else {
+        // 非 ie 浏览器
+        scriptEle.onload = function() {
+          scriptStrList.splice(0, 1);
+          insertScript(scriptStrList, obj);
+        };
+      }
+    }
+  }
 
   // 动态表格生成
   function configMingTable(config) {
@@ -868,30 +911,32 @@
     let tableFooter = container.shadowRoot.querySelector(".table-footer");
     try {
       if (!tableBody.style.minWidth) {
-        tableBody.style.minWidth = container.clientWidth + "px";
+        tableBody.style.maxWidth = container.clientWidth + "px";
       }
       container.style.padding = "0 !important";
+      let containerHeight = container.clientHeight;
+      let containerbodyHeight = containerHeight - tableFooter.offsetHeight;
+      let tableHeaderHeight = mainHeader.offsetHeight;
+      let tableBodyHeight = containerbodyHeight - tableHeaderHeight;
       if (
         tableBody.style.height ||
         container.clientHeight >
-          tableBody.offsetHeight + tableFooter.offsetHeight
+          tableBody.offsetHeight + tableFooter.offsetHeight ||
+        tableBody.scrollHeight > tableBody.offsetHeight
       ) {
+        // 校准表格容器高度
+        tableBody.style.height = containerbodyHeight + "px";
         let widthScroll = false;
-        if (tableBody.clientWidth < mainBody.scrollWidth) {
+        if (tableBody.clientWidth < tableBody.scrollWidth) {
           widthScroll = true;
         }
-        // 校准表格表头高度
-        let tableBodyHeight = container.clientHeight - tableFooter.offsetHeight;
-        tableBody.style.height = tableBodyHeight + "px";
-        fixedBody.style.height = tableBodyHeight + "px";
+        fixedBody.style.height =
+          containerbodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
         // 校准表格主体高度
-        let mainBoayHeight =
-          container.clientHeight -
-          tableFooter.offsetHeight -
-          mainHeader.offsetHeight -
-          (widthScroll ? browerScrollBarWidth : 0);
-        mainBody.style.height = mainBoayHeight + "px";
-        fixedTable.style.height = mainBoayHeight + "px";
+        mainBody.style.height =
+          tableBodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
+        fixedTable.style.height =
+          tableBodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
       }
       container.style.padding = false;
     } catch (e) {
@@ -957,7 +1002,7 @@
           `.m-table-main-header tr[row-index=r-1] th[col-index=${colIndex}]`
         );
         if (referenceNode) {
-          fixedVisableHeaderNode.style.width = referenceNode.style.width;
+          fixedVisableHeaderNode.style.width = referenceNode.clientWidth + "px";
         }
       });
       let fixedHeaderNodes = Array.from(
@@ -1017,65 +1062,15 @@
       if (tableBody.scrollLeft == scrollDiff) {
         fixedBody.classList.remove("more");
       }
-      if (container.scrollHeight > container.clientHeight) {
-        let scrollHeight =
-          tableBody.offsetHeight -
-          mainHeader.clientHeight -
-          mainBody.clientHeight;
-        mainBody.style.height =
-          container.clientHeight -
-          mainHeader.clientHeight -
-          tableFooter.clientHeight -
-          scrollHeight +
-          "px";
-        fixedTable.style.height = mainBody.style.height;
+      if (mainBody.scrollHeight > mainBody.clientHeight) {
         mainHeader.style.overflowY = "scroll";
         fixedHeader.style.overflowY = "scroll";
+      } else {
+        mainHeader.style.overflowY = false;
+        fixedHeader.style.overflowY = false;
       }
     } catch (e) {
       return false;
-    }
-  }
-
-  // 顺序递归向目标元素插入script
-  function insertScript(scriptStrList, obj) {
-    if (Array.isArray(scriptStrList) && scriptStrList.length) {
-      let scriptItem = scriptStrList[0];
-      let scriptEle = document.createElement("script");
-      let src = scriptItem.match(new RegExp(/src="[^>]*"/g));
-      let content = scriptItem
-        .replace(/<script[^>]*>/g, "")
-        .replace("</script>", "");
-      scriptEle.setAttribute("type", "text/javascript");
-      if (src && src[0]) {
-        scriptEle.setAttribute(
-          "src",
-          src[0].replace('src="', "").replace('"', "")
-        );
-      }
-      if (content) {
-        scriptEle.text = content;
-      }
-      obj.appendChild(scriptEle);
-      if (scriptEle.readyState) {
-        // ie中的准备状态
-        scriptEle.onreadystatechange = function() {
-          if (
-            scriptEle.readyState == "loaded" ||
-            scriptEle.readyState == "complete"
-          ) {
-            scriptEle.onreadystatechange = null;
-            scriptStrList.splice(0, 1);
-            insertScript(scriptStrList, obj);
-          }
-        };
-      } else {
-        // 非 ie 浏览器
-        scriptEle.onload = function() {
-          scriptStrList.splice(0, 1);
-          insertScript(scriptStrList, obj);
-        };
-      }
     }
   }
 
@@ -1615,7 +1610,7 @@
           content: "";
           width: 0;
           height: 1px;
-          background-color: #0359ff;
+          background-color: var(--m-input-active-border-color, #0359ff);
           transition: width .3s linear;
           position: absolute;
           bottom: 0;
@@ -1632,19 +1627,19 @@
           border: none;
           outline: none;
           background: none;
-          border-bottom: 1px solid #e6e6e6;
+          border-bottom: 1px solid var(--m-input-border-color, #e6e6e6);
           box-sizing: border-box;
         }
         :host(m-input) input:hover,
         :host(m-input) input:focus {
-          color: #000;
+          color: var(--m-input-active-color, #000);
         }
         :host(m-input) input[disabled],
         :host(m-input) input[disabled]:hover,
         :host(m-input) input[disabled]:focus {
-          color: #e6e6e6;
+          color: var(--m-input-disable-color, #e6e6e6);
           cursor: not-allowed;
-          border-bottom: 1px solid #f6f6f6;
+          border-bottom: 1px solid var(--m-input-disable-border-color, #f6f6f6);
         }
         </style>
         <div>
@@ -1766,6 +1761,118 @@
     }
   }
 
+  // m-switch 定义
+  class mSwitch extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 组件初始化
+      let self = this;
+      let selected = self.hasAttribute("selected");
+      let disabled = self.hasAttribute("disabled");
+      let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+      shadow.resetStyleInheritance = true; // 重置样式
+      let html = `
+        <style type="text/css">
+          :host(m-switch) {
+            width: fit-content;
+            cursor: pointer;
+            display: inline-flex;
+          }
+          :host(m-switch[disabled]) {
+            cursor: not-allowed;
+          }
+          :host(m-switch) .switch {
+            width: 50px;
+            height: 28px;
+            border-radius: 14px;
+            box-sizing: border-box;
+            box-shadow: rgba(0,0,0,.1) 0 0 10px inset;
+            background-color: #f9f9f9;
+            transition: background .3s linear;
+          }
+          :host(m-switch) .switch.active {
+            background-color: #75d991;
+          }
+          :host(m-switch[disabled]) .switch {
+            background-color: #dfdfdf;
+          }
+          :host(m-switch) .switch .switch-label {
+            width: 22px;
+            height: 22px;
+            border-radius: 11px;
+            background-color: #fff;
+            box-shadow: rgba(0,0,0,.1) 0 0 3px;
+            transition: margin .3s ease-out;
+            margin: 3px 0 0 3px;
+          }
+          :host(m-switch) .switch.active .switch-label {
+            margin: 3px 0 0 25px;
+          }
+          :host(m-switch[disabled]) .switch .switch-label {
+            background-color: #f6f6f6;
+            margin: 3px 0 0 3px;
+          }
+        </style>
+        <div class="switch${selected ? " active" : ""}">
+          <div class="switch-label"></div>
+        </div>
+      `;
+      shadow.innerHTML = html;
+      this.addEventListener("click", function(e) {
+        e.preventDefault();
+        self.toggleActive();
+        return false;
+      });
+    }
+
+    toggleActive() {
+      // 切换激活状态
+      if (this.disabled) {
+        return false;
+      }
+      this.shadowRoot.querySelector(".switch").classList.toggle("active");
+      if (
+        this.shadowRoot.querySelector(".switch").classList.contains("active")
+      ) {
+        this.setAttribute("selected", "");
+      } else {
+        this.removeAttribute("selected");
+      }
+    }
+
+    get value() {
+      return this.shadowRoot
+        .querySelector("switch")
+        .classList.contains("active");
+    }
+
+    set value(value) {
+      if (value) {
+        this.shadowRoot.querySelector(".switch").classList.add("active");
+        this.setAttribute("selected", "");
+      } else {
+        this.shadowRoot.querySelector(".switch").classList.remove("active");
+        this.removeAttribute("selected");
+      }
+    }
+
+    get disabled() {
+      return this.hasAttribute("disabled");
+    }
+
+    set disabled(value) {
+      if (value) {
+        this.setAttribute("disabled", "");
+      } else {
+        this.removeAttribute("disabled");
+      }
+    }
+  }
+
   // m-form-item 定义
   class mFormItem extends HTMLElement {
     constructor() {
@@ -1841,10 +1948,10 @@
             top: 0;
           }
           :host(m-form-item) .active .name {
-            color: #0359ff;
+            color: var(--m-form-item-active-color, #0359ff);
           }
           :host(m-form-item) .empty .name {
-            color: #b3b3b3;
+            color: var(--m-form-item-color, #b3b3b3);
             font-size: inherit;
             line-height: 30px;
             top: 20px;
@@ -1990,138 +2097,138 @@
       let shadow = this.attachShadow({ mode: "open" });
       shadow.resetStyleInheritance = true; // 重置样式
       let html = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                    :host(m-operation-list) {
-                        cursor: default;
-                        display: inline-flex;
-                        position: relative;
-                    }
-                    :host(m-operation-list) .m-operation-tip {
-                        width: 125px;
-                        height: 32px;
-                        padding: 0 12px;
-                        color: var(--m-operation-list-color, #fff);
-                        font-size: 14px;
-                        border-radius: 16px;
-                        background-color: var(--m-operation-list-bg, #0359ff);
-                        box-sizing: border-box;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: space-between;
-                    }
-                    :host(m-operation-list) .m-operation-tip.disabled,
-                    :host(m-operation-list:hover) .m-operation-tip.disabled {
-                        color: var(--m-operation-list-disable-color, #8f8f8f);
-                        background-color: var(--m-operation-list-disable-bg, #e9e9e9);
-                        cursor: not-allowed;
-                    }
-                    :host(m-operation-list:hover) .m-operation-tip {
-                    }
-                    :host(m-operation-list) .m-operation-tip span,
-                    :host(m-operation-list) .m-operation-tip i {
-                        line-height: 1;
-                    }
-                    :host(m-operation-list) .m-operation-tip i:last-of-type {
-                        margin-left: 5px;
-                        transition: transform 200ms linear;
-                    }
-                    :host(m-operation-list) .m-operation-tip i.arrow-rotate {
-                        transform: rotateX(180deg);
-                    }
-                    :host(m-operation-list) .m-operation-list {
-                        width: fit-content;
-                        max-width: 180px;
-                        height: 0;
-                        padding: 0;
-                        overflow: hidden;
-                        transition: height .3s ease, opacity .2s linear;
-                        position: fixed;
-                        z-index: 0;
-                    }
-                    :host(m-operation-list) .m-operation-list.active {
-                        opacity: 1;
-                    }
-                    :host(m-operation-list) .m-operation-list .arrow-up {
-                        content: "";
-                        width: 100%;
-                        height: 4px;
-                        background-image: url("${url}images/select_arrow.png");
-                        background-repeat: no-repeat;
-                        background-position: center 0;
-                        display: block;
-                    }
-                    :host(m-operation-list) .m-operation-list.rotate .arrow-up {
-                        display: none;
-                    }
-                    :host(m-operation-list) .m-operation-list .arrow-down {
-                        content: "";
-                        width: 100%;
-                        height: 4px;
-                        background-image: url("${url}images/select_arrow.png");
-                        background-repeat: no-repeat;
-                        background-position: center 0;
-                        transform: rotate(180deg);
-                        display: none;
-                    }
-                    :host(m-operation-list) .m-operation-list.rotate .arrow-down {
-                        display: block;
-                    }
-                    :host(m-operation-list) .m-operation-list .operation-list {
-                        width: 100%;
-                        height: fit-content;
-                        padding: 8px 0;
-                        list-style: none;
-                        border-radius: 4px;
-                        background-color: #fff;
-                        box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
-                        box-sizing: border-box;
-                        position: relative;
-                    }
-                    :host(m-select) .m-operation-list.rotate .operation-list {
-                        box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
-                    }
-                    :host(m-select) .m-operation-list .operation-list > div:first-child {
-                        width: 100%;
-                        height: fit-content;
-                        overflow: hidden;
-                        position: relative;
-                    }
-                    :host(m-operation-list) .m-operation-list ::slotted(m-operation) {
-                        width: 100%;
-                        padding: 0 12px;
-                        color: var(--m-operation-color, #333);
-                        white-space: nowrap;
-                        line-height: 30px;
-                        text-overflow: ellipsis;
-                        list-style: none;
-                        overflow: hidden;
-                        box-sizing: border-box;
-                        display: block;
-                    }
-                    :host(m-operation-list) .m-operation-list ::slotted(m-operation:hover) {
-                        color: var(--m-operation-active-color, #0359ff);
-                        background-color: var(--m-operation-active-bg, #f3f3f3);
-                    }
-                    :host(m-operation-list) .m-operation-list ::slotted(m-operation[disabled]) {
-                        color: var(--m-operation-disable-color, #8f8f8f);
-                        cursor: not-allowed;
-                        background: none;
-                    }
-                </style>
-                <div class="m-operation-tip${disabled ? " disabled" : ""}">
-                    <i class="m-iconfont ming-icon-operation"></i>
-                    <span>相关操作</span>
-                    <i class="arrow m-iconfont ming-icon-arrow-down"></i>
-                </div>
-                <div class="m-operation-list">
-                    <div class="arrow-up"></div>
-                    <div class="operation-list">
-                        <div><slot></slot></div>
-                    </div>
-                    <div class="arrow-down"></div>
-                </div>
-            `;
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+            :host(m-operation-list) {
+                cursor: default;
+                display: inline-flex;
+                position: relative;
+            }
+            :host(m-operation-list) .m-operation-tip {
+                width: 125px;
+                height: 32px;
+                padding: 0 12px;
+                color: var(--m-operation-list-color, #fff);
+                font-size: 14px;
+                border-radius: 16px;
+                background-color: var(--m-operation-list-bg, #0359ff);
+                box-sizing: border-box;
+                display: inline-flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            :host(m-operation-list) .m-operation-tip.disabled,
+            :host(m-operation-list:hover) .m-operation-tip.disabled {
+                color: var(--m-operation-list-disable-color, #8f8f8f);
+                background-color: var(--m-operation-list-disable-bg, #e9e9e9);
+                cursor: not-allowed;
+            }
+            :host(m-operation-list:hover) .m-operation-tip {
+            }
+            :host(m-operation-list) .m-operation-tip span,
+            :host(m-operation-list) .m-operation-tip i {
+                line-height: 1;
+            }
+            :host(m-operation-list) .m-operation-tip i:last-of-type {
+                margin-left: 5px;
+                transition: transform 200ms linear;
+            }
+            :host(m-operation-list) .m-operation-tip i.arrow-rotate {
+                transform: rotateX(180deg);
+            }
+            :host(m-operation-list) .m-operation-list {
+                width: fit-content;
+                max-width: 180px;
+                height: 0;
+                padding: 0;
+                overflow: hidden;
+                transition: height .3s ease, opacity .2s linear;
+                position: fixed;
+                z-index: 0;
+            }
+            :host(m-operation-list) .m-operation-list.active {
+                opacity: 1;
+            }
+            :host(m-operation-list) .m-operation-list .arrow-up {
+                content: "";
+                width: 100%;
+                height: 4px;
+                background-image: url("${url}images/select_arrow.png");
+                background-repeat: no-repeat;
+                background-position: center 0;
+                display: block;
+            }
+            :host(m-operation-list) .m-operation-list.rotate .arrow-up {
+                display: none;
+            }
+            :host(m-operation-list) .m-operation-list .arrow-down {
+                content: "";
+                width: 100%;
+                height: 4px;
+                background-image: url("${url}images/select_arrow.png");
+                background-repeat: no-repeat;
+                background-position: center 0;
+                transform: rotate(180deg);
+                display: none;
+            }
+            :host(m-operation-list) .m-operation-list.rotate .arrow-down {
+                display: block;
+            }
+            :host(m-operation-list) .m-operation-list .operation-list {
+                width: 100%;
+                height: fit-content;
+                padding: 8px 0;
+                list-style: none;
+                border-radius: 4px;
+                background-color: #fff;
+                box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
+                box-sizing: border-box;
+                position: relative;
+            }
+            :host(m-select) .m-operation-list.rotate .operation-list {
+                box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
+            }
+            :host(m-select) .m-operation-list .operation-list > div:first-child {
+                width: 100%;
+                height: fit-content;
+                overflow: hidden;
+                position: relative;
+            }
+            :host(m-operation-list) .m-operation-list ::slotted(m-operation) {
+                width: 100%;
+                padding: 0 12px;
+                color: var(--m-operation-color, #333);
+                white-space: nowrap;
+                line-height: 30px;
+                text-overflow: ellipsis;
+                list-style: none;
+                overflow: hidden;
+                box-sizing: border-box;
+                display: block;
+            }
+            :host(m-operation-list) .m-operation-list ::slotted(m-operation:hover) {
+                color: var(--m-operation-active-color, #0359ff);
+                background-color: var(--m-operation-active-bg, #f3f3f3);
+            }
+            :host(m-operation-list) .m-operation-list ::slotted(m-operation[disabled]) {
+                color: var(--m-operation-disable-color, #8f8f8f);
+                cursor: not-allowed;
+                background: none;
+            }
+        </style>
+        <div class="m-operation-tip${disabled ? " disabled" : ""}">
+            <i class="m-iconfont ming-icon-operation"></i>
+            <span>相关操作</span>
+            <i class="arrow m-iconfont ming-icon-arrow-down"></i>
+        </div>
+        <div class="m-operation-list">
+            <div class="arrow-up"></div>
+            <div class="operation-list">
+                <div><slot></slot></div>
+            </div>
+            <div class="arrow-down"></div>
+        </div>
+    `;
       shadow.innerHTML = html;
       this.calcLabelSize(); // 计算宽度和位置
       this.addEventListener("mouseenter", this.addHoverState);
@@ -3409,139 +3516,142 @@
         shadowRoot.resetStyleInheritance = true; // 重置样式
       }
       let shadowContent = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                :host(m-table) {
-                    width: fit-content;
-                    min-width: 300px;
-                    max-width: 100%;
-                    font-size: 14px;
-                    overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                    position: relative;
-                    margin: 0 auto;
-                }
-                :host(m-table) .table-body {
-                    width: fit-content;
-                    max-width: 100%;
-                    min-height: 100px;
-                    overflow: auto;
-                }
-                :host(m-table) .table-body .table-header {
-                    width: fit-content;
-                    background-color: #dfe8fb;
-                    border-bottom: 1px solid #ebeff2;
-                }
-                :host(m-table) .table-header .main-table-header {
-                    width: fit-content;
-                }
-                :host(m-table) .table-body .table-main {
-                    width: fit-content;
-                    overflow: auto;
-                    background-color: #fff;
-                    display: flex;
-                    flex-wrap: wrap;
-                    position: relative;
-                }
-                :host(m-table) .table-body.error,
-                :host(m-table) .table-body.empty {
-                    width: 100%;
-                }
-                :host(m-table) .table-body.error > .table-main,
-                :host(m-table) .table-body.empty > .table-main {
-                    width: 100%;
-                    min-height: 320px;
-                    background-color: #f5f5f5;
-                }
-                :host(m-table) .table-body.error .error,
-                :host(m-table) .table-body.empty .empty {
-                    height: 100%;
-                }
-                :host(m-table) .table-body.empty .fixed-table,
-                :host(m-table) .table-body.error .fixed-table {
-                    display: none;
-                }
-                :host(m-table) .table-main .error,
-                :host(m-table) .table-main .empty {
-                    width: 100%;
-                    height: 0;
-                    color: #9f9f9f;
-                    font-size: 20px;
-                    overflow: hidden;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                }
-                :host(m-table) .table-main .error i,
-                :host(m-table) .table-main .empty i {
-                    font-size: 120px;
-                }
-                :host(m-table) .table-main .error i {
-                    color: #dd5454;
-                }
-                :host(m-table) .table-main .error div:not(:first-child),
-                :host(m-table) .table-main .empty div:not(:first-child) {
-                    margin-top: 30px;
-                }
-                :host(m-table) .table-body .fixed-body {
-                    width: fit-content;
-                    overflow: hidden;
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                }
-                :host(m-table) .table-body .fixed-body.more {
-                    box-shadow: -4px 0px 4px rgba(0,0,0,.1);
-                }
-                :host(m-table) .fixed-body .fixed-table-header {
-                    width: fit-content;
-                    background-color: #dfe8fb;
-                    border-bottom: 1px solid #ebeff2;
-                }
-                :host(m-table) .fixed-body .fixed-table {
-                    width: fit-content;
-                    overflow: auto;
-                    background-color: #fff;
-                }
-                :host(m-table) .table-footer {
-                    width: 100%;
-                    height: 62px;
-                    padding: 15px 30px;
-                    box-sizing: border-box;
-                    background-color: #fff;
-                }
-                </style>
-                <div class="table-body">
-                    <div class="table-header">
-                        <slot name="main-table-header"></slot>
-                    </div>
-                    <div class="table-main">
-                        <slot name="main-table"></slot>
-                        <div class="error">
-                            <div><i class="m-iconfont ming-icon-bug"></i></div>
-                            <div>组件内部出现错误，请审查</div>
-                        </div>
-                        <div class="empty">
-                            <div><i class="m-iconfont ming-icon-cloud-fail"></i></div>
-                            <div>数据不见啦，空空如也~</div>
-                        </div>
-                    </div>
-                    <div class="fixed-body">
-                        <div class="fixed-table-header">
-                            <slot name="fixed-table-header"></slot>
-                        </div>
-                        <div class="fixed-table">
-                            <slot name="fixed-table"></slot>
-                        </div>
-                    </div>
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+        :host(m-table) {
+            width: fit-content;
+            min-width: 300px;
+            max-width: 100%;
+            font-size: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin: 0 auto;
+        }
+        :host(m-table) .table-body {
+            width: fit-content;
+            min-width: 100%;
+            min-height: 100px;
+            overflow: auto;
+        }
+        :host(m-table) .table-body .table-header {
+            width: fit-content;
+            min-width: 100%;
+            background-color: #dfe8fb;
+            border-bottom: 1px solid #ebeff2;
+        }
+        :host(m-table) .table-header .main-table-header {
+            width: fit-content;
+        }
+        :host(m-table) .table-body .table-main {
+            width: fit-content;
+            min-width: 100%;
+            overflow: auto;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        :host(m-table) .table-body.error,
+        :host(m-table) .table-body.empty {
+            width: 100%;
+        }
+        :host(m-table) .table-body.error > .table-main,
+        :host(m-table) .table-body.empty > .table-main {
+            width: 100%;
+            min-height: 320px;
+            background-color: #f5f5f5;
+        }
+        :host(m-table) .table-body.error .error,
+        :host(m-table) .table-body.empty .empty {
+            height: 100%;
+        }
+        :host(m-table) .table-body.empty .fixed-table,
+        :host(m-table) .table-body.error .fixed-table {
+            display: none;
+        }
+        :host(m-table) .table-main .error,
+        :host(m-table) .table-main .empty {
+            width: 100%;
+            height: 0;
+            color: #9f9f9f;
+            font-size: 20px;
+            overflow: hidden;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        :host(m-table) .table-main .error i,
+        :host(m-table) .table-main .empty i {
+            font-size: 120px;
+        }
+        :host(m-table) .table-main .error i {
+            color: #dd5454;
+        }
+        :host(m-table) .table-main .error div:not(:first-child),
+        :host(m-table) .table-main .empty div:not(:first-child) {
+            margin-top: 30px;
+        }
+        :host(m-table) .table-body .fixed-body {
+            width: fit-content;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+        :host(m-table) .table-body .fixed-body.more {
+            box-shadow: -4px 0px 4px rgba(0,0,0,.1);
+        }
+        :host(m-table) .fixed-body .fixed-table-header {
+            width: fit-content;
+            background-color: #dfe8fb;
+            border-bottom: 1px solid #ebeff2;
+        }
+        :host(m-table) .fixed-body .fixed-table {
+            width: fit-content;
+            overflow: auto;
+            background-color: #fff;
+        }
+        :host(m-table) .table-footer {
+            width: 100%;
+            height: 62px;
+            padding: 15px 30px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        </style>
+        <div class="table-body">
+            <div class="table-header">
+                <slot name="main-table-header"></slot>
+            </div>
+            <div class="table-main">
+                <div>
+                  <slot name="main-table"></slot>
                 </div>
-                <div class="table-footer">
-                    <slot name="table-footer"></slot>
+                <div class="error">
+                    <div><i class="m-iconfont ming-icon-bug"></i></div>
+                    <div>组件内部出现错误，请审查</div>
                 </div>
-            `;
+                <div class="empty">
+                    <div><i class="m-iconfont ming-icon-cloud-fail"></i></div>
+                    <div>数据不见啦，空空如也~</div>
+                </div>
+            </div>
+            <div class="fixed-body">
+                <div class="fixed-table-header">
+                    <slot name="fixed-table-header"></slot>
+                </div>
+                <div class="fixed-table">
+                    <slot name="fixed-table"></slot>
+                </div>
+            </div>
+        </div>
+        <div class="table-footer">
+            <slot name="table-footer"></slot>
+        </div>
+    `;
       shadowRoot.innerHTML = shadowContent;
       let observer = new MutationObserver(function() {
         syncFixedTable.call(self);
@@ -3763,6 +3873,7 @@
   window.customElements.define("m-select", mSelect); // m-select注册
   window.customElements.define("m-option", mOption); // m-option注册
   window.customElements.define("m-input", mInput); // m-input注册
+  window.customElements.define("m-switch", mSwitch); // m-input注册
   window.customElements.define("m-form-item", mFormItem); // m-form-item注册
   window.customElements.define("m-operation-list", mOperationList); // m-option注册
   window.customElements.define("m-operation", mOperation); // m-operation注册

@@ -105,6 +105,29 @@
 
 
 
+### m-switch
+
+**Attributes**
+
+-   **value:** current state of switch
+-   **disabled:** whether to disable the switch
+-   **selected:** active the switch
+
+**Styles**
+
+-   none
+
+**Values**
+
+-   **value：** set the state of the switch
+-   **disabled：** whether to disable the switch
+
+**Methods**
+
+-   none
+
+
+
 ### m-operation-list
 
 **Attributes**
@@ -384,6 +407,20 @@
 **preview**
 
 ![Preview of input](./previews/preview_input.png)
+
+
+
+### switch
+
+```html
+<m-switch disabled></m-switch>
+<m-switch></m-switch>
+<m-switch selected></m-switch>
+```
+
+**preview**
+
+![Preview of switch](E:/projects/ming.js/previews/preview_switch.png)
 
 
 

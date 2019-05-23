@@ -105,6 +105,29 @@
 
 
 
+### m-switch
+
+**属性**
+
+-   **value:** 当前状态
+-   **disabled:** 是否禁用滑钮
+-   **selected:** 是否打开
+
+**样式**
+
+-   无
+
+**值**
+
+-   **value：** 设置当前状态
+-   **disabled：** 设置是否禁用滑钮
+
+**方法**
+
+-   无
+
+
+
 ### m-operation-list
 
 **属性**
@@ -384,6 +407,18 @@
 **预览**
 
 ![input 的预览图](./previews/preview_zh_input.png)
+
+### switch
+
+```html
+<m-switch disabled></m-switch>
+<m-switch></m-switch>
+<m-switch selected></m-switch>
+```
+
+**预览**
+
+![switch 的预览图](./previews/preview_switch.png)
 
 
 
