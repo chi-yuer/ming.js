@@ -44,6 +44,10 @@
 
 -   **calcWidthAndPosition():** re-caculate component width and list position
 
+**Events**
+
+-   **change:** value changed
+
 
 
 ### m-option
@@ -103,6 +107,12 @@
 
 -   none
 
+**Events**
+
+-   **focus:** input focused
+-   **blur:** input blured
+-   **change:** input value changed
+
 
 
 ### m-switch
@@ -125,6 +135,10 @@
 **Methods**
 
 -   none
+
+**Events**
+
+-   **change:** value changed
 
 
 
@@ -258,6 +272,10 @@
 **Methods**
 
 -   none
+
+**Events**
+
+-   **change:** menu changed
 
 
 

@@ -737,8 +737,8 @@
             let mainColumn = document.createElement("td");
             mainColumn.setAttribute("col-index", "c" + colIndex);
             if (column.fixed) mainColumn.classList.add("fixed-column");
-            if (rowIndex == 0) mainColumn.setAttribute("align", column.align);
-            if (rowIndex == 0) mainColumn.setAttribute("valign", column.valign);
+            mainColumn.setAttribute("align", column.align);
+            mainColumn.setAttribute("valign", column.valign);
             mainColumn.innerHTML = `<m-inner-cell class="inner-cell">${columnValue}</m-inner-cell>`;
             mainColumn.querySelector("m-inner-cell.inner-cell").dataSet = {
               row: row,
@@ -1117,6 +1117,8 @@
         return false;
       }
       this.selected = true;
+      this.parentElement.changeEvent.value = this.getAttribute("value");
+      this.parentElement.dispatchEvent(this.parentElement.changeEvent);
     }
 
     connectedCallback() {
@@ -1155,8 +1157,10 @@
         this.parentNode.shadowRoot.querySelector(
           ".m-select span"
         ).innerHTML = this.innerHTML;
+        this.parentElement.dispatchEvent(this.parentElement.changeEvent);
       } else {
         this.removeAttribute("selected");
+        this.parentElement.dispatchEvent(this.parentElement.changeEvent);
       }
     }
 
@@ -1349,6 +1353,8 @@
         </div>
     `;
       shadow.innerHTML = html;
+      self.changeEvent = document.createEvent("Event");
+      self.changeEvent.initEvent("change", false, false);
       this.addEventListener("mouseenter", this.addHoverState);
       this.addEventListener("mouseout", function(e) {
         self.listCloseDelay = setTimeout(function() {
@@ -1649,15 +1655,28 @@
         </div>
       `;
       shadow.innerHTML = html;
+      self.focusEvent = document.createEvent("Event");
+      self.focusEvent.initEvent("focus", false, false);
+      self.blurEvent = document.createElement("Event");
+      self.blurEvent.initEvent("blur", false, false);
+      self.changeEvent = document.createElement("Event");
+      self.changeEvent.initEvent("change", false, false);
       this.shadowRoot
         .querySelector("input")
         .addEventListener("focus", function() {
           self.focusEventHandler.call(self);
+          self.dispatchEvent(self.focusEvent);
         });
       this.shadowRoot
         .querySelector("input")
         .addEventListener("blur", function() {
           self.blurEventHandler.call(self);
+          self.dispatchEvent(self.blurEvent);
+        });
+      this.shadowRoot
+        .querySelector("input")
+        .addEventListener("change", function() {
+          self.dispatchEvent(self.changeEvent);
         });
     }
 
@@ -1822,6 +1841,8 @@
         </div>
       `;
       shadow.innerHTML = html;
+      self.changeEvent = document.createEvent("Event");
+      self.changeEvent.initEvent("change", false, false);
       this.addEventListener("click", function(e) {
         e.preventDefault();
         self.toggleActive();
@@ -1842,6 +1863,10 @@
       } else {
         this.removeAttribute("selected");
       }
+      this.changeEvent.value = this.shadowRoot
+        .querySelector("switch")
+        .classList.contains("active");
+      this.dispatchEvent(this.changeEvent);
     }
 
     get value() {
@@ -2950,6 +2975,10 @@
               shade: [0.3, "#000"]
             });
           }
+          self.parentElement.parentElement.changeEvent.menuTarget = self;
+          self.parentElement.parentElement.dispatchEvent(
+            self.parentElement.parentElement.changeEvent
+          );
           if (this.parentNode.parentNode.menuTarget.nodeName == "IFRAME") {
             this.parentNode.parentNode.menuTarget.setAttribute(
               "src",
@@ -3088,8 +3117,6 @@
 
     initComponent() {
       // 组件初始化
-
-      // 获取属性值
       let icon = {
         content: this.getAttribute("icon") || "",
         type: new RegExp(/^(\&\#)(.)*(;)$/).test(this.getAttribute("icon"))
@@ -3109,101 +3136,101 @@
         this.classList.add("disabled");
       }
       let html = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                :host(m-menu-group) {
-                    height: 50px;
-                    overflow: hidden;
-                    transition: height .3s linear;
-                    display: block;
-                }
-                :host(m-menu-group.active),
-                :host(m-menu-group:hover) {
-                    background-color: var(--m-menu-group-active-bg, #f3f3f3);
-                }
-                :host(m-menu-group[disabled]:hover) {
-                    background: none;
-                }
-                :host(m-menu-group) .m-menu-group {
-                    width: 100%;
-                    height: 50px;
-                    color: var(--m-menu-group-color, #333);
-                    display: flex;
-                    align-items: center;
-                    cursor: pointer;
-                }
-                :host(m-menu-group[disabled]) .m-menu-group {
-                    color: var(--m-menu-group-disable-color, #c8c8c8);
-                    cursor: not-allowed;
-                }
-                :host(m-menu-group) .m-menu-group .group-icon {
-                    width: 24px;
-                    height: 24px;
-                    font-size: 22px;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-left: 50px;
-                }
-                :host(m-menu-group) .m-menu-group .group-icon i {
-                    font-size: 24px;
-                    line-height: 1;
-                }
-                :host(m-menu-group.active) .m-menu-group .group-icon,
-                :host(m-menu-group:hover) .m-menu-group .group-icon {
-                    color: var(--m-menu-group-icon-active-color, #0359ff);
-                }
-                :host(m-menu-group) .m-menu-group .group-name {
-                    width: calc(100% - 100px);
-                    white-space: nowrap;
-                    font-size: 16px;
-                    font-weight: bolder;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    margin-left: 24px;
-                }
-                :host(m-menu-group.active) .m-menu-group .group-name,
-                :host(m-menu-group:hover) .m-menu-group .group-name {
-                    color: var(--m-menu-group-active-color, #000);
-                }
-                :host(m-menu-group[disabled]:hover) .m-menu-group .group-icon,
-                :host(m-menu-group[disabled]:hover) .m-menu-group .group-name  {
-                    color: var(--m-menu-group-icon-disable-color, #c8c8c8);
-                }
-                :host(m-menu-group) ::slotted(m-menu-item)  {
-                    width: 100%;
-                    height: 50px;
-                    padding-left: 120px;
-                    color: var(--m-menu-item-color, #333);
-                    white-space: nowrap;
-                    font-size: 16px;
-                    line-height: 50px;
-                    text-overflow: ellipsis;
-                    cursor: pointer;
-                    overflow: hidden;
-                    display: block;
-                    box-sizing: border-box;
-                }
-                :host(m-menu-group) ::slotted(m-menu-item:hover),
-                :host(m-menu-group) ::slotted(m-menu-item.active) {
-                    color: var(--m-menu-item-active-color, #0359ff);
-                }
-                :host(m-menu-group) ::slotted(m-menu-item[disabled]),
-                :host(m-menu-group) ::slotted(m-menu-item[disabled]:hover) {
-                    color: var(--m-menu-item-disable-color, #c8c8c8);
-                    cursor: not-allowed;
-                }
-                </style>
-                <div class="m-menu-group ${disabled ? "disabled" : ""}">
-                    <div class="group-icon">
-                        <i class="m-iconfont ${
-                          icon.type == "class" ? icon.content : ""
-                        }">${icon.type == "unicode" ? icon.content : ""}</i>
-                    </div>
-                    <div class="group-name">${name}</div>
-                </div>
-                <slot class="m-menu-items"></slot>
-            `;
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+        :host(m-menu-group) {
+            height: 50px;
+            overflow: hidden;
+            transition: height .3s linear;
+            display: block;
+        }
+        :host(m-menu-group.active),
+        :host(m-menu-group:hover) {
+            background-color: var(--m-menu-group-active-bg, #f3f3f3);
+        }
+        :host(m-menu-group[disabled]:hover) {
+            background: none;
+        }
+        :host(m-menu-group) .m-menu-group {
+            width: 100%;
+            height: 50px;
+            color: var(--m-menu-group-color, #333);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        :host(m-menu-group[disabled]) .m-menu-group {
+            color: var(--m-menu-group-disable-color, #c8c8c8);
+            cursor: not-allowed;
+        }
+        :host(m-menu-group) .m-menu-group .group-icon {
+            width: 24px;
+            height: 24px;
+            font-size: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 50px;
+        }
+        :host(m-menu-group) .m-menu-group .group-icon i {
+            font-size: 24px;
+            line-height: 1;
+        }
+        :host(m-menu-group.active) .m-menu-group .group-icon,
+        :host(m-menu-group:hover) .m-menu-group .group-icon {
+            color: var(--m-menu-group-icon-active-color, #0359ff);
+        }
+        :host(m-menu-group) .m-menu-group .group-name {
+            width: calc(100% - 100px);
+            white-space: nowrap;
+            font-size: 16px;
+            font-weight: bolder;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            margin-left: 24px;
+        }
+        :host(m-menu-group.active) .m-menu-group .group-name,
+        :host(m-menu-group:hover) .m-menu-group .group-name {
+            color: var(--m-menu-group-active-color, #000);
+        }
+        :host(m-menu-group[disabled]:hover) .m-menu-group .group-icon,
+        :host(m-menu-group[disabled]:hover) .m-menu-group .group-name  {
+            color: var(--m-menu-group-icon-disable-color, #c8c8c8);
+        }
+        :host(m-menu-group) ::slotted(m-menu-item)  {
+            width: 100%;
+            height: 50px;
+            padding-left: 120px;
+            color: var(--m-menu-item-color, #333);
+            white-space: nowrap;
+            font-size: 16px;
+            line-height: 50px;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            overflow: hidden;
+            display: block;
+            box-sizing: border-box;
+        }
+        :host(m-menu-group) ::slotted(m-menu-item:hover),
+        :host(m-menu-group) ::slotted(m-menu-item.active) {
+            color: var(--m-menu-item-active-color, #0359ff);
+        }
+        :host(m-menu-group) ::slotted(m-menu-item[disabled]),
+        :host(m-menu-group) ::slotted(m-menu-item[disabled]:hover) {
+            color: var(--m-menu-item-disable-color, #c8c8c8);
+            cursor: not-allowed;
+        }
+        </style>
+        <div class="m-menu-group ${disabled ? "disabled" : ""}">
+            <div class="group-icon">
+                <i class="m-iconfont ${
+                  icon.type == "class" ? icon.content : ""
+                }">${icon.type == "unicode" ? icon.content : ""}</i>
+            </div>
+            <div class="group-name">${name}</div>
+        </div>
+        <slot class="m-menu-items"></slot>
+      `;
       shadowRoot.innerHTML = html;
       this.addEventListener("click", this.clickEventListener);
     }
@@ -3248,6 +3275,8 @@
             if (layer) {
               self.parentNode.loading = layer.load(2, { shade: [0.3, "#000"] });
             }
+            self.parentElement.changeEvent.menuTarget = self;
+            self.parentElement.dispatchEvent(self.parentElement.changeEvent);
             if (this.parentNode.menuTarget.nodeName == "IFRAME") {
               this.parentNode.menuTarget.setAttribute("src", this.menuRoute);
               if (!this.parentNode.menuTarget.attachEvent) {
@@ -3430,6 +3459,8 @@
           }
         }
       }
+      this.changeEvent = document.createEvent("Event");
+      this.changeEvent.initEvent("change", false, false);
     }
 
     clearLoading() {
