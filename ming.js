@@ -32,6 +32,7 @@
     window.customElements.get("m-menu-group") ||
     window.customElements.get("m-menu") ||
     window.customElements.get("m-table") ||
+    window.customElements.get("m-simple-table") ||
     window.customElements.get("m-inner-cell")
   ) {
     return false;
@@ -295,17 +296,23 @@
     }
   }
 
-  // 动态表格生成
-  function configMingTable(config) {
+  // 校验表格配置
+  function verifyTableConfig(config) {
     let param = {
       container: this, // 容器
-      config: config // 配置文件
+      config: config, // 配置文件
+      nodeName: this.nodeName.toLowerCase() // 标签名
     };
-    if (param.container.nodeName != "M-TABLE") {
+    if (
+      param.container.nodeName != "M-TABLE" &&
+      param.container.nodeName != "M-SIMPLE-TABLE"
+    ) {
       // 容器为非m-table标签
       let info = {
-        name: "m-table",
-        message: `table container <${param.selector}> is not a m-table`
+        name: param.nodeName,
+        message: `table container <${param.selector}> is not a ${
+          param.nodeName
+        }`
       };
       mError.apply(info);
       param.container.showError();
@@ -314,20 +321,16 @@
     if (!param.config) {
       // 未给定配置信息
       let info = {
-        name: "m-table",
+        name: param.nodeName,
         message: `not specify table config yet`
       };
       mError.apply(info);
       param.container.showError();
       return false;
     }
-    delete param.container.config;
-    delete param.container.renderList;
-    param.pageSize = config.pageSize || 10; // 分页大小
-    param.pageNumber = config.pageNumber || 1; // 分页页码
     if (!param.config.data) {
       let info = {
-        name: "m-table",
+        name: param.nodeName,
         message: `not specify table data get method`
       };
       mError.apply(info);
@@ -338,7 +341,7 @@
     if (!param.columns) {
       // 尚未给出columns配置
       let info = {
-        name: "m-table",
+        name: param.nodeName,
         message: `table column is not specified`
       };
       mError.apply(info, [param.columns]);
@@ -348,7 +351,7 @@
       if (!Array.isArray(param.columns)) {
         // columns为非数组
         let info = {
-          name: "m-table",
+          name: param.nodeName,
           message: `table column should be an array`
         };
         mError.apply(info, [param.columns]);
@@ -358,7 +361,7 @@
       if (param.columns.length == 0) {
         // columns数组为空
         let info = {
-          name: "m-table",
+          name: param.nodeName,
           message: `table column should not be empty`
         };
         mError.apply(info, [param.columns]);
@@ -373,7 +376,7 @@
       });
       if (columnsCheck) {
         let info = {
-          name: "m-table",
+          name: param.nodeName,
           message: `table column item should be array or object`
         };
         mError.apply(info, [param.columns]);
@@ -390,7 +393,7 @@
         });
         if (columnsCheck) {
           let info = {
-            name: "m-table",
+            name: param.nodeName,
             message: `all table column items should be array`
           };
           mError.apply(info, [param.columns]);
@@ -406,21 +409,42 @@
         });
         if (columnsCheck) {
           let info = {
-            name: "m-table",
+            name: param.nodeName,
             message: `all table column items should be object`
           };
           mError.apply(info, [param.columns]);
           param.container.showError();
           return false;
         }
-        param.columns = [param.columns];
       }
     }
+    return true;
+  }
+
+  // 动态表格生成
+  function configMingTable(config) {
+    let param = {
+      container: this, // 容器
+      config: config // 配置文件
+    };
+
+    if (!verifyTableConfig.call(param.container, config)) {
+      return false;
+    }
+
+    delete param.container.config;
+    delete param.container.renderList;
+    param.pageSize = config.pageSize || 10; // 分页大小
+    param.pageNumber = config.pageNumber || 1; // 分页页码
     param.container.innerHTML = "";
-    param.renderList = new Array(); // 渲染列表
-    param.renderGrid = new Array(); // 渲染列表用网格
     param.tableHeader = "";
     param.fixedTableHeader = "";
+    param.renderList = new Array(); // 渲染列表
+    param.renderGrid = new Array(); // 渲染列表用网格
+    param.columns = param.config.columns || []; // 表格单元格配置
+    if (!Array.isArray(param.columns[0])) {
+      param.columns = [param.columns];
+    }
     try {
       let renderGridItem = new Array();
       param.columns[0].forEach(function(item) {
@@ -454,7 +478,7 @@
       });
     } catch (e) {
       let info = {
-        name: "m-table",
+        name: param.nodeName,
         message: `table column parsing failure`
       };
       mError.apply(info, [param.columns, e]);
@@ -562,7 +586,10 @@
         param.container.appendChild(mainTableHeader);
         mainTableHeader.innerHTML = param.tableHeader;
       }
-      if (param.fixedTableHeader != "") {
+      if (
+        param.fixedTableHeader != "" &&
+        param.container.nodeName == "M-TABLE"
+      ) {
         let fixedTableHeader = document.createElement("table");
         fixedTableHeader.setAttribute("slot", "fixed-table-header");
         fixedTableHeader.setAttribute("cellspacing", "0");
@@ -589,11 +616,13 @@
       mainTableBody.setAttribute("cellspacing", "0");
       mainTableBody.classList.add("m-table-main-body");
       param.container.appendChild(mainTableBody);
-      let fixedTableBody = document.createElement("table");
-      fixedTableBody.setAttribute("slot", "fixed-table");
-      fixedTableBody.setAttribute("cellspacing", "0");
-      fixedTableBody.classList.add("m-table-fixed-body");
-      param.container.appendChild(fixedTableBody);
+      if (param.container.nodeName == "M-TABLE") {
+        let fixedTableBody = document.createElement("table");
+        fixedTableBody.setAttribute("slot", "fixed-table");
+        fixedTableBody.setAttribute("cellspacing", "0");
+        fixedTableBody.classList.add("m-table-fixed-body");
+        param.container.appendChild(fixedTableBody);
+      }
       let pageContainer = document.createElement("ul");
       pageContainer.setAttribute("slot", "table-footer");
       pageContainer.classList.add("m-table-footer");
@@ -662,7 +691,19 @@
     param.container.hideError();
     param.container.hideEmpty();
     if (typeof param.tableData == "function") {
-      param.tableData = await eval("this.config.data.call(param.container)");
+      try {
+        param.tableData = await eval("this.config.data.call(param.container)");
+      } catch (e) {
+        if (param.config.error && typeof param.config.error == "function") {
+          eval(`param.config.error(param.container, param.tableData)`);
+        }
+        param.container.showEmpty();
+        // 动态计算宽高度
+        setTimeout(function() {
+          syncFixedTable.call(param.container);
+        }, 0);
+        throw e;
+      }
     }
     if (!param.renderList || !param.config) {
       // 验证组件是否已经注册
@@ -711,11 +752,12 @@
       }
       try {
         let mainTableBody = param.container.querySelector(".m-table-main-body");
-        let fixedTableBody = param.container.querySelector(
-          ".m-table-fixed-body"
-        );
+        let fixedTableBody = null;
         mainTableBody.innerHTML = "";
-        fixedTableBody.innerHTML = "";
+        if (param.container.nodeName == "M-TABLE") {
+          fixedTableBody = param.container.querySelector(".m-table-fixed-body");
+          fixedTableBody.innerHTML = "";
+        }
         param.tableData.data.forEach(function(row, rowIndex) {
           // 按行解析
           if (rowIndex >= param.config.pageSize) {
@@ -723,8 +765,11 @@
           }
           let mainRow = document.createElement("tr");
           mainRow.setAttribute("row-index", "r" + rowIndex);
-          let fixedRow = document.createElement("tr");
-          fixedRow.setAttribute("row-index", "r" + rowIndex);
+          let fixedRow = null;
+          if (param.container.nodeName == "M-TABLE") {
+            fixedRow = document.createElement("tr");
+            fixedRow.setAttribute("row-index", "r" + rowIndex);
+          }
           param.renderList.forEach(function(column, colIndex) {
             // 按解析列表解析列
             let columnValue = row[column.field] || "-";
@@ -736,7 +781,9 @@
             }
             let mainColumn = document.createElement("td");
             mainColumn.setAttribute("col-index", "c" + colIndex);
-            if (column.fixed) mainColumn.classList.add("fixed-column");
+            if (param.container.nodeName == "M-TABLE") {
+              if (column.fixed) mainColumn.classList.add("fixed-column");
+            }
             mainColumn.setAttribute("align", column.align);
             mainColumn.setAttribute("valign", column.valign);
             mainColumn.innerHTML = `<m-inner-cell class="inner-cell">${columnValue}</m-inner-cell>`;
@@ -753,29 +800,33 @@
               rowIndex: rowIndex,
               colIndex: colIndex
             }).toString();
-            if (column.fixed) {
-              let fixedColumn = document.createElement("td");
-              fixedColumn.setAttribute("col-index", "c" + colIndex);
-              if (rowIndex == 0)
-                fixedColumn.setAttribute("align", column.align);
-              if (rowIndex == 0)
-                fixedColumn.setAttribute("valign", column.valign);
-              fixedColumn.innerHTML = `<m-inner-cell class="inner-cell">${columnValue}</m-inner-cell>`;
-              fixedColumn.querySelector("m-inner-cell.inner-cell").dataSet = {
-                row: row,
-                column: columnValue,
-                rowIndex: rowIndex,
-                colIndex: colIndex
-              };
-              fixedRow.appendChild(fixedColumn);
+            if (param.container.nodeName == "M-TABLE") {
+              if (column.fixed) {
+                let fixedColumn = document.createElement("td");
+                fixedColumn.setAttribute("col-index", "c" + colIndex);
+                if (rowIndex == 0)
+                  fixedColumn.setAttribute("align", column.align);
+                if (rowIndex == 0)
+                  fixedColumn.setAttribute("valign", column.valign);
+                fixedColumn.innerHTML = `<m-inner-cell class="inner-cell">${columnValue}</m-inner-cell>`;
+                fixedColumn.querySelector("m-inner-cell.inner-cell").dataSet = {
+                  row: row,
+                  column: columnValue,
+                  rowIndex: rowIndex,
+                  colIndex: colIndex
+                };
+                fixedRow.appendChild(fixedColumn);
+              }
             }
           });
           mainTableBody.appendChild(mainRow);
-          fixedTableBody.appendChild(fixedRow);
+          if (param.container.nodeName == "M-TABLE") {
+            fixedTableBody.appendChild(fixedRow);
+          }
         });
       } catch (e) {
         let info = {
-          name: "m-table",
+          name: param.container.nodeName.toLowerCase(),
           message: `table data parsing failure`
         };
         mError.apply(info, [param.tableData, e]);
@@ -787,7 +838,7 @@
         let pageSize = param.config.pageSize;
         let maxPage = Math.ceil(param.tableData.total / pageSize);
         param.container.config.maxPageNumber = maxPage;
-        let firstStatus = currentPage >= 1;
+        let firstStatus = currentPage <= 1;
         let lastStatus = currentPage >= maxPage;
         let pageTypeIcon = param.config.pageTypeIcon;
         let pageSelector = new Array();
@@ -882,7 +933,7 @@
       if (param.config.error && typeof param.config.error == "function") {
         eval(`param.config.error(param.container, param.tableData)`);
       }
-      param.container.showEmpty();
+      param.container.showError();
     }
     try {
       // 动态计算宽高度
@@ -906,6 +957,7 @@
     let tableBody = container.shadowRoot.querySelector(".table-body");
     let fixedBody = container.shadowRoot.querySelector(".fixed-body");
     let mainHeader = container.shadowRoot.querySelector(".table-header");
+    let fixedHeader = container.shadowRoot.querySelector(".fixed-table-header");
     let mainBody = container.shadowRoot.querySelector(".table-main");
     let fixedTable = container.shadowRoot.querySelector(".fixed-table");
     let tableFooter = container.shadowRoot.querySelector(".table-footer");
@@ -930,13 +982,19 @@
         if (tableBody.clientWidth < tableBody.scrollWidth) {
           widthScroll = true;
         }
-        fixedBody.style.height =
-          containerbodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
+        if (container.nodeName == "M-TABLE") {
+          fixedBody.style.height =
+            containerbodyHeight -
+            (widthScroll ? browerScrollBarWidth : 0) +
+            "px";
+        }
         // 校准表格主体高度
         mainBody.style.height =
           tableBodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
-        fixedTable.style.height =
-          tableBodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
+        if (container.nodeName == "M-TABLE") {
+          fixedTable.style.height =
+            tableBodyHeight - (widthScroll ? browerScrollBarWidth : 0) + "px";
+        }
       }
       container.style.padding = false;
     } catch (e) {
@@ -954,6 +1012,7 @@
       return false;
     }
     if (
+      container.nodeName == "M-TABLE" &&
       !container.querySelector(".m-table-fixed-header") &&
       !container.querySelector(".m-table-fixed-body")
     ) {
@@ -993,81 +1052,92 @@
           tdNode.style.width = maxWidth + "px";
         }
       });
-      let fixedVisableHeaderNodes = Array.from(
-        container.querySelectorAll(".m-table-fixed-header tr:first-of-type th")
-      );
-      fixedVisableHeaderNodes.forEach(function(fixedVisableHeaderNode) {
-        let colIndex = fixedVisableHeaderNode.getAttribute("col-index");
-        let referenceNode = container.querySelector(
-          `.m-table-main-header tr[row-index=r-1] th[col-index=${colIndex}]`
+      if (container.nodeName == "M-TABLE") {
+        let fixedVisableHeaderNodes = Array.from(
+          container.querySelectorAll(
+            ".m-table-fixed-header tr:first-of-type th"
+          )
         );
-        if (referenceNode) {
-          fixedVisableHeaderNode.style.width = referenceNode.clientWidth + "px";
-        }
-      });
-      let fixedHeaderNodes = Array.from(
-        container.querySelectorAll(
-          ".m-table-fixed-header tr:not(:first-of-type) th"
-        )
-      );
-      fixedHeaderNodes.forEach(function(fixedHeaderNode) {
-        let rowIndex = fixedHeaderNode.parentNode.getAttribute("row-index");
-        let colIndex = fixedHeaderNode.getAttribute("col-index");
-        let referenceNode = container.querySelector(
-          `.m-table-main-header tr[row-index=${rowIndex}] th[col-index=${colIndex}]`
+        fixedVisableHeaderNodes.forEach(function(fixedVisableHeaderNode) {
+          let colIndex = fixedVisableHeaderNode.getAttribute("col-index");
+          let referenceNode = container.querySelector(
+            `.m-table-main-header tr[row-index=r-1] th[col-index=${colIndex}]`
+          );
+          if (referenceNode) {
+            fixedVisableHeaderNode.style.width =
+              referenceNode.clientWidth + "px";
+          }
+        });
+        let fixedHeaderNodes = Array.from(
+          container.querySelectorAll(
+            ".m-table-fixed-header tr:not(:first-of-type) th"
+          )
         );
-        if (referenceNode) {
-          fixedHeaderNode.style.height = referenceNode.clientHeight + "px";
-        }
-      });
-      let fixedBodyHorizontalNodes = Array.from(
-        container.querySelectorAll(".m-table-fixed-body tr:first-of-type td")
-      );
-      fixedBodyHorizontalNodes.forEach(function(fixedBodyHorizontalNode) {
-        let colIndex = fixedBodyHorizontalNode.getAttribute("col-index");
-        let referenceNode = container.querySelector(
-          `.m-table-main-body tr:first-of-type td[col-index=${colIndex}]`
+        fixedHeaderNodes.forEach(function(fixedHeaderNode) {
+          let rowIndex = fixedHeaderNode.parentNode.getAttribute("row-index");
+          let colIndex = fixedHeaderNode.getAttribute("col-index");
+          let referenceNode = container.querySelector(
+            `.m-table-main-header tr[row-index=${rowIndex}] th[col-index=${colIndex}]`
+          );
+          if (referenceNode) {
+            fixedHeaderNode.style.height = referenceNode.clientHeight + "px";
+          }
+        });
+        let fixedBodyHorizontalNodes = Array.from(
+          container.querySelectorAll(".m-table-fixed-body tr:first-of-type td")
         );
-        if (referenceNode) {
-          fixedBodyHorizontalNode.style.width =
-            referenceNode.clientWidth + "px";
-        }
-      });
-      let fixedBodyVerticalNodes = Array.from(
-        container.querySelectorAll(".m-table-fixed-body td:first-of-type")
-      );
-      fixedBodyVerticalNodes.forEach(function(fixedBodyVerticalNode) {
-        let rowIndex = fixedBodyVerticalNode.parentNode.getAttribute(
-          "row-index"
+        fixedBodyHorizontalNodes.forEach(function(fixedBodyHorizontalNode) {
+          let colIndex = fixedBodyHorizontalNode.getAttribute("col-index");
+          let referenceNode = container.querySelector(
+            `.m-table-main-body tr:first-of-type td[col-index=${colIndex}]`
+          );
+          if (referenceNode) {
+            fixedBodyHorizontalNode.style.width =
+              referenceNode.clientWidth + "px";
+          }
+        });
+        let fixedBodyVerticalNodes = Array.from(
+          container.querySelectorAll(".m-table-fixed-body td:first-of-type")
         );
-        let referenceNode = container.querySelector(
-          `.m-table-main-body tr[row-index=${rowIndex}] td`
+        fixedBodyVerticalNodes.forEach(function(fixedBodyVerticalNode) {
+          let rowIndex = fixedBodyVerticalNode.parentNode.getAttribute(
+            "row-index"
+          );
+          let referenceNode = container.querySelector(
+            `.m-table-main-body tr[row-index=${rowIndex}] td`
+          );
+          if (referenceNode) {
+            fixedBodyVerticalNode.style.height =
+              referenceNode.offsetHeight + "px";
+          }
+        });
+        let fixedHeader = container.shadowRoot.querySelector(
+          ".fixed-table-header"
         );
-        if (referenceNode) {
-          fixedBodyVerticalNode.style.height =
-            referenceNode.offsetHeight + "px";
-        }
-      });
-      let fixedHeader = container.shadowRoot.querySelector(
-        ".fixed-table-header"
-      );
-      let scrollDiff = mainBody.scrollWidth - tableBody.clientWidth;
-      if (
-        scrollDiff > 0 &&
-        tableBody.scrollLeft != scrollDiff &&
-        !fixedBody.classList.contains("more")
-      ) {
-        fixedBody.classList.add("more");
       }
-      if (tableBody.scrollLeft == scrollDiff) {
-        fixedBody.classList.remove("more");
+      let scrollDiff = mainBody.scrollWidth - tableBody.clientWidth;
+      if (container.nodeName == "M-TABLE") {
+        if (
+          scrollDiff > 0 &&
+          tableBody.scrollLeft != scrollDiff &&
+          !fixedBody.classList.contains("more")
+        ) {
+          fixedBody.classList.add("more");
+        }
+        if (tableBody.scrollLeft == scrollDiff) {
+          fixedBody.classList.remove("more");
+        }
       }
       if (mainBody.scrollHeight > mainBody.clientHeight) {
         mainHeader.style.overflowY = "scroll";
-        fixedHeader.style.overflowY = "scroll";
+        if (container.nodeName == "M-TABLE") {
+          fixedHeader.style.overflowY = "scroll";
+        }
       } else {
         mainHeader.style.overflowY = false;
-        fixedHeader.style.overflowY = false;
+        if (container.nodeName == "M-TABLE") {
+          fixedHeader.style.overflowY = false;
+        }
       }
     } catch (e) {
       return false;
@@ -1118,7 +1188,6 @@
       }
       this.selected = true;
       this.parentElement.changeEvent.value = this.getAttribute("value");
-      this.parentElement.dispatchEvent(this.parentElement.changeEvent);
     }
 
     connectedCallback() {
@@ -1160,7 +1229,6 @@
         this.parentElement.dispatchEvent(this.parentElement.changeEvent);
       } else {
         this.removeAttribute("selected");
-        this.parentElement.dispatchEvent(this.parentElement.changeEvent);
       }
     }
 
@@ -1205,153 +1273,153 @@
       let html = `
         <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
         <style type="text/css">
-            :host(m-select) {
-                cursor: default;
-                position: relative;
-                display: inline-flex;
-            }
-            :host(m-select) .m-select {
-                width: fit-content;
-                max-width: 240px;
-                padding: var(--m-select-padding, 0 15px);
-                color: var(--m-select-color, #8f8f8f);
-                box-sizing: border-box;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
-            :host(m-select) .m-select.disabled,
-            :host(m-select) .m-select.active.disabled {
-                color:  var(--m-select-disable-color, #c8c8c8);
-                cursor: not-allowed;
-            }
-            :host(m-select) .m-select.active {
-                color: var(--m-select-active-color, #000);
-            }
-            :host(m-select) .m-select span,
-            :host(m-select) .m-select i {
-                line-height: 1;
-            }
-            :host(m-select) .m-select span {
-                max-width: calc(100% - 24px);
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
-            :host(m-select) .m-select i {
-                margin-left: 8px;
-                transition: transform 200ms linear;
-            }
-            :host(m-select) .m-select i.arrow-rotate {
-                transform: rotateX(180deg);
-            }
-            :host(m-select) .m-select-option {
-                width: fit-content;
-                max-width: 240px;
-                height: 0;
-                padding: 0;
-                overflow: hidden;
-                transition: height .3s ease, opacity .2s linear;
-                position: fixed;
-                z-index: 0;
-            }
-            :host(m-select) .m-select-option.active {
-                opacity: 1;
-            }
-            :host(m-select) .m-select-option .arrow-up {
-                content: "";
-                width: 100%;
-                height: 4px;
-                background-image: url("${url}images/select_arrow.png");
-                background-repeat: no-repeat;
-                background-position: center 0;
-                display: block;
-            }
-            :host(m-select) .m-select-option.rotate .arrow-up {
-                display: none;
-            }
-            :host(m-select) .m-select-option .arrow-down {
-                content: "";
-                width: 100%;
-                height: 4px;
-                background-image: url("${url}images/select_arrow.png");
-                background-repeat: no-repeat;
-                background-position: center 0;
-                transform: rotate(180deg);
-                display: none;
-            }
-            :host(m-select) .m-select-option.rotate .arrow-down {
-                display: block;
-            }
-            :host(m-select) .m-select-option .option-list {
-                width: 100%;
-                height: fit-content;
-                padding: 8px 0;
-                list-style: none;
-                border-radius: 4px;
-                background-color: #fff;
-                box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
-                box-sizing: border-box;
-                position: relative;
-            }
-            :host(m-select) .m-select-option.rotate .option-list {
-                box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
-            }
-            :host(m-select) .m-select-option .option-list > div:first-child {
-                width: 100%;
-                height: fit-content;
-                max-height: 180px;
-                overflow: hidden;
-                position: relative;
-            }
-            :host(m-select) .m-select-option .option-list .scroll-bar {
-                content: "";
-                width: 6px;
-                height: 0;
-                border-radius: 3px;
-                background-color: #0359ff;
-                position: absolute;
-                top: 0;
-                right: 0;
-                margin-top: 8px;
-            }
-            :host(m-select) .m-select-option ::slotted(m-option) {
-                width: 100%;
-                padding: 0 12px;
-                color: var(--m-option-color, #333);
-                white-space: nowrap;
-                line-height: 30px;
-                text-overflow: ellipsis;
-                list-style: none;
-                overflow: hidden;
-                box-sizing: border-box;
-                display: block;
-            }
-            :host(m-select) .m-select-option ::slotted(m-option:hover),
-            :host(m-select) .m-select-option ::slotted(m-option[selected]) {
-                color: var(--m-option-active-color, #0359ff);
-                background-color: var(--m-option-active-bg, #f3f3f3);
-            }
-            :host(m-select) .m-select-option ::slotted(m-option[disabled]),
-            :host(m-select) .m-select-option ::slotted(m-option[disabled]:hover) {
-                color: var(--m-option-disable-color, #c8c8c8);
-                background: none;
-                cursor: not-allowed;
-            }
+          :host(m-select) {
+            cursor: default;
+            position: relative;
+            display: inline-flex;
+          }
+          :host(m-select) .m-select {
+            width: fit-content;
+            max-width: 240px;
+            padding: var(--m-select-padding, 0 15px);
+            color: var(--m-select-color, #8f8f8f);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+          :host(m-select) .m-select.disabled,
+          :host(m-select) .m-select.active.disabled {
+            color:  var(--m-select-disable-color, #c8c8c8);
+            cursor: not-allowed;
+          }
+          :host(m-select) .m-select.active {
+            color: var(--m-select-active-color, #000);
+          }
+          :host(m-select) .m-select span,
+          :host(m-select) .m-select i {
+            line-height: 1;
+          }
+          :host(m-select) .m-select span {
+            max-width: calc(100% - 24px);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+          }
+          :host(m-select) .m-select i {
+            margin-left: 8px;
+            transition: transform 200ms linear;
+          }
+          :host(m-select) .m-select i.arrow-rotate {
+            transform: rotateX(180deg);
+          }
+          :host(m-select) .m-select-option {
+            width: fit-content;
+            max-width: 240px;
+            height: 0;
+            padding: 0;
+            overflow: hidden;
+            transition: height .3s ease, opacity .2s linear;
+            position: fixed;
+            z-index: 0;
+          }
+          :host(m-select) .m-select-option.active {
+            opacity: 1;
+          }
+          :host(m-select) .m-select-option .arrow-up {
+            content: "";
+            width: 100%;
+            height: 4px;
+            background-image: url("${url}images/select_arrow.png");
+            background-repeat: no-repeat;
+            background-position: center 0;
+            display: block;
+          }
+          :host(m-select) .m-select-option.rotate .arrow-up {
+            display: none;
+          }
+          :host(m-select) .m-select-option .arrow-down {
+            content: "";
+            width: 100%;
+            height: 4px;
+            background-image: url("${url}images/select_arrow.png");
+            background-repeat: no-repeat;
+            background-position: center 0;
+            transform: rotate(180deg);
+            display: none;
+          }
+          :host(m-select) .m-select-option.rotate .arrow-down {
+            display: block;
+          }
+          :host(m-select) .m-select-option .option-list {
+            width: 100%;
+            height: fit-content;
+            padding: 8px 0;
+            list-style: none;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
+            box-sizing: border-box;
+            position: relative;
+          }
+          :host(m-select) .m-select-option.rotate .option-list {
+            box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
+          }
+          :host(m-select) .m-select-option .option-list > div:first-child {
+            width: 100%;
+            height: fit-content;
+            max-height: 180px;
+            overflow: hidden;
+            position: relative;
+          }
+          :host(m-select) .m-select-option .option-list .scroll-bar {
+            content: "";
+            width: 6px;
+            height: 0;
+            border-radius: 3px;
+            background-color: #0359ff;
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-top: 8px;
+          }
+          :host(m-select) .m-select-option ::slotted(m-option) {
+            width: 100%;
+            padding: 0 12px;
+            color: var(--m-option-color, #333);
+            white-space: nowrap;
+            line-height: 30px;
+            text-overflow: ellipsis;
+            list-style: none;
+            overflow: hidden;
+            box-sizing: border-box;
+            display: block;
+          }
+          :host(m-select) .m-select-option ::slotted(m-option:hover),
+          :host(m-select) .m-select-option ::slotted(m-option[selected]) {
+            color: var(--m-option-active-color, #0359ff);
+            background-color: var(--m-option-active-bg, #f3f3f3);
+          }
+          :host(m-select) .m-select-option ::slotted(m-option[disabled]),
+          :host(m-select) .m-select-option ::slotted(m-option[disabled]:hover) {
+            color: var(--m-option-disable-color, #c8c8c8);
+            background: none;
+            cursor: not-allowed;
+          }
         </style>
         <div class="m-select${disabled ? " disabled" : ""}">
-            <span>${nodeSelected ? nodeSelected.innerHTML || " " : " "}</span>
-            <i class="m-iconfont ming-icon-arrow-down"></i>
+          <span>${nodeSelected ? nodeSelected.innerHTML || " " : " "}</span>
+          <i class="m-iconfont ming-icon-arrow-down"></i>
         </div>
         <div class="m-select-option">
-            <div class="arrow-up"></div>
-            <div class="option-list">
-                <div><slot></slot></div>
-                <div class="scroll-bar"></div>
-            </div>
-            <div class="arrow-down"></div>
+          <div class="arrow-up"></div>
+          <div class="option-list">
+            <div><slot></slot></div>
+            <div class="scroll-bar"></div>
+          </div>
+          <div class="arrow-down"></div>
         </div>
-    `;
+      `;
       shadow.innerHTML = html;
       self.changeEvent = document.createEvent("Event");
       self.changeEvent.initEvent("change", false, false);
@@ -1657,9 +1725,9 @@
       shadow.innerHTML = html;
       self.focusEvent = document.createEvent("Event");
       self.focusEvent.initEvent("focus", false, false);
-      self.blurEvent = document.createElement("Event");
+      self.blurEvent = document.createEvent("Event");
       self.blurEvent.initEvent("blur", false, false);
-      self.changeEvent = document.createElement("Event");
+      self.changeEvent = document.createEvent("Event");
       self.changeEvent.initEvent("change", false, false);
       this.shadowRoot
         .querySelector("input")
@@ -2455,79 +2523,75 @@
       }
       let disabled = this.hasAttribute("disabled"); // 禁用状态
       let html = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                    :host(m-function) {
-                        cursor: pointer;
-                        position: relative;
-                    }
-                    :host(m-function) .m-function {
-                        width: 32px;
-                        height: 32px;
-                        line-height: 32px;
-                        display: inline-flex;
-                        align-items: center;
-                        position: relative;
-                    }
-                    :host(m-function) .m-function .m-function-content {
-                        width: fit-content;
-                        height: 32px;
-                        color: var(--m-function-color, #fff);
-                        font-size: 14px;
-                        border-radius: 16px;
-                        background-color: var(--m-function-bg, #0359ff);
-                        box-sizing: border-box;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                    }
-                    :host(m-function) .m-function .m-function-content .m-function-tip {
-                        width: 0;
-                        padding-right: 0;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        transition: all 200ms linear;
-                    }
-                    :host(m-function) .m-function.disabled .m-function-content,
-                    :host(m-function:hover) .m-function.disabled .m-function-content {
-                        color: var(--m-function-disable-color, #8f8f8f);
-                        background-color: var(--m-function-disable-bg, #e9e9e9);
-                        cursor: not-allowed;
-                    }
-                    :host(m-function:hover) .m-function:not(.disabled) .m-function-content {
-                        box-shadow: rgba(0,0,0,0.25) 4px 4px 10px;
-                    }
-                    :host(m-function:hover) .m-function:not(.disabled) .m-function-content .m-function-tip {
-                        padding-right: 12px;
-                    }
-                    :host(m-function) .m-function .m-function-content i {
-                        width: 32px;
-                        font-size: 16px;
-                        text-align: center;
-                        line-height: 1;
-                    }
-                    :host(m-function) .m-function .m-function-content .visible-tip {
-                        width: fit-content;
-                        white-space: nowrap;
-                    }
-                </style>
-                <div class="m-function${disabled ? " disabled" : ""}">&nbsp;
-                    <div class="m-function-content">
-                        <i class="m-iconfont ${
-                          iconClass
-                            ? iconClass
-                            : icon
-                            ? ""
-                            : "icon-ios-help-circle-outl"
-                        }">${icon ? icon : ""}</i>
-                        <div class="m-function-tip">${tip ? tip : ""}</div>
-                        <div class="visible-tip">${tip ? tip : ""}</div>
-                    </div>
-                </div>
-            `;
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+          :host(m-function) {
+            cursor: pointer;
+            position: relative;
+          }
+          :host(m-function) .m-function {
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+          }
+          :host(m-function) .m-function .m-function-content {
+            width: fit-content;
+            height: 32px;
+            color: var(--m-function-color, #fff);
+            font-size: 14px;
+            border-radius: 16px;
+            background-color: var(--m-function-bg, #0359ff);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            position: absolute;
+            top: 0;
+            left: 0;
+          }
+          :host(m-function) .m-function .m-function-content .m-function-tip {
+            width: 0;
+            padding-right: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 200ms linear;
+          }
+          :host(m-function) .m-function.disabled .m-function-content,
+          :host(m-function:hover) .m-function.disabled .m-function-content {
+            color: var(--m-function-disable-color, #8f8f8f);
+            background-color: var(--m-function-disable-bg, #e9e9e9);
+            cursor: not-allowed;
+          }
+          :host(m-function:hover) .m-function:not(.disabled) .m-function-content {
+            box-shadow: rgba(0,0,0,0.25) 4px 4px 10px;
+          }
+          :host(m-function:hover) .m-function:not(.disabled) .m-function-content .m-function-tip {
+            padding-right: 12px;
+          }
+          :host(m-function) .m-function .m-function-content i {
+            width: 32px;
+            font-size: 16px;
+            text-align: center;
+            line-height: 1;
+          }
+          :host(m-function) .m-function .m-function-content .visible-tip {
+            width: fit-content;
+            white-space: nowrap;
+          }
+      </style>
+      <div class="m-function${disabled ? " disabled" : ""}">&nbsp;
+        <div class="m-function-content">
+          <i class="m-iconfont ${
+            iconClass ? iconClass : icon ? "" : "icon-ios-help-circle-outl"
+          }">${icon ? icon : ""}</i>
+          <div class="m-function-tip">${tip ? tip : ""}</div>
+          <div class="visible-tip">${tip ? tip : ""}</div>
+        </div>
+      </div>
+      `;
       shadow.innerHTML = html;
       this.tipWidth = this.shadowRoot.querySelector(".visible-tip").clientWidth;
       this.shadowRoot.querySelector(".visible-tip").remove();
@@ -2689,124 +2753,111 @@
       }
       let disabled = this.hasAttribute("disabled"); // 禁用状态
       let html = `
-                <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
-                <style type="text/css">
-                    :host(m-icon-function) {
-                        cursor: pointer;
-                        position: relative;
-                    }
-                    :host(m-icon-function) .m-function {
-                        width: 32px;
-                        height: 32px;
-                        line-height: 32px;
-                        display: inline-flex;
-                        align-items: center;
-                        position: relative;
-                    }
-                    :host(m-icon-function) .m-function .m-function-content {
-                        width: fit-content;
-                        height: 32px;
-                        color: var(--m-icon-function-color, #333);
-                        font-size: 14px;
-                        border-radius: 16px;
-                        box-sizing: border-box;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: space-between;
-                    }
-                    :host(m-icon-function:hover) .m-function:not(.disabled) .m-function-content {
-                        color: var(--m-icon-function-active-color, #0359ff);
-                        background-color: var(--m-icon-function-active-bg, #e9e9e9);
-                    }
-                    :host(m-icon-function) .m-function.disabled .m-function-content,
-                    :host(m-icon-function:hover) .m-function.disabled .m-function-content {
-                        color: var(--m-icon-function-disable-color, #8f8f8f);
-                        cursor: not-allowed;
-                    }
-                    :host(m-icon-function) .m-function .m-function-content i {
-                        width: 32px;
-                        font-size: 20px;
-                        line-height: 1;
-                        text-align: center;
-                    }
-                    :host(m-icon-function) .m-function .m-function-content .visible-tip {
-                        width: fit-content;
-                        font-size: 12px;
-                        white-space: nowrap;
-                        visibility: hidden;
-                        position: absolute;
-                    }
-                    :host(m-icon-function) .m-function .m-function-tip {
-                        width: fit-content;
-                        display: none;
-                        position: absolute;
-                        z-index: 999;
-                    }
-                    :host(m-icon-function) .m-function-up .m-function-tip {
-                        top: -37px;
-                    }
-                    :host(m-icon-function) .m-function-down .m-function-tip {
-                        top: 37px;
-                    }
-                    :host(m-icon-function:hover) .m-function-up:not(.disabled) .m-function-tip-up,
-                    :host(m-icon-function:hover) .m-function-down:not(.disabled) .m-function-tip-down {
-                        display: block;
-                    }
-                    :host(m-icon-function) .m-function .m-function-tip .black-arrow{
-                        width: 8px;
-                        height: 4px;
-                        background-image: url("${url}images/select_arrow_black.png");
-                        background-repeat: no-repeat;
-                        display: block;
-                        margin: 0 auto;
-                    }
-                    :host(m-icon-function) .m-function .m-function-tip-up .black-arrow {
-                        transform: rotate(180deg);
-                    }
-                    :host(m-icon-function) .m-function .m-function-tip .tip-content {
-                        width: fit-content;
-                        padding: 8px;
-                        color: var(--m-icon-function-tip-color, #fff);
-                        font-size: 12px;
-                        line-height: 1;
-                        border-radius: 3px;
-                        background-color: var(--m-icon-function-tip-bg, #000);
-                        box-shadow: rgba(0,0,0,0.25) 4px 4px 10px;
-                        display: block;
-                    }
-                </style>
-                <div class="m-function${disabled ? " disabled" : ""}">
-                    <div class="m-function-content">
-                        <i class="m-iconfont ${
-                          iconClass
-                            ? iconClass
-                            : icon
-                            ? ""
-                            : "icon-ios-help-circle-outl"
-                        }">${icon ? icon : ""}</i>
-                        <div class="visible-tip">${tip ? tip : ""}</div>
-                    </div>
-                    <div class="m-function-tip m-function-tip-up">
-                        <span class="tip-content">${tip ? tip : ""}</span>
-                        <span class="black-arrow"></span>
-                    </div>
-                    <div class="m-function-tip m-function-tip-down">
-                        <span class="black-arrow"></span>
-                        <span class="tip-content">${tip ? tip : ""}</span>
-                    </div>
-                </div>
-            `;
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+          :host(m-icon-function) {
+            cursor: pointer;
+            position: relative;
+          }
+          :host(m-icon-function) .m-function {
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+          }
+          :host(m-icon-function) .m-function .m-function-content {
+            width: fit-content;
+            height: 32px;
+            color: var(--m-icon-function-color, #333);
+            font-size: 14px;
+            border-radius: 16px;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          :host(m-icon-function:hover) .m-function:not(.disabled) .m-function-content {
+            color: var(--m-icon-function-active-color, #0359ff);
+            background-color: var(--m-icon-function-active-bg, #e9e9e9);
+          }
+          :host(m-icon-function) .m-function.disabled .m-function-content,
+          :host(m-icon-function:hover) .m-function.disabled .m-function-content {
+            color: var(--m-icon-function-disable-color, #8f8f8f);
+            cursor: not-allowed;
+          }
+          :host(m-icon-function) .m-function .m-function-content i {
+            width: 32px;
+            font-size: 20px;
+            line-height: 1;
+            text-align: center;
+          }
+          :host(m-icon-function) .m-function .m-function-content .visible-tip {
+            width: fit-content;
+            font-size: 12px;
+            white-space: nowrap;
+            visibility: hidden;
+            position: absolute;
+          }
+          :host(m-icon-function) .m-function .m-function-tip {
+            width: fit-content;
+            display: none;
+            position: fixed;
+            z-index: 999;
+          }
+          :host(m-icon-function) .m-function-up .m-function-tip {
+            top: -37px;
+          }
+          :host(m-icon-function) .m-function-down .m-function-tip {
+            top: 37px;
+          }
+          :host(m-icon-function:hover) .m-function-up:not(.disabled) .m-function-tip-up,
+          :host(m-icon-function:hover) .m-function-down:not(.disabled) .m-function-tip-down {
+            display: block;
+          }
+          :host(m-icon-function) .m-function .m-function-tip .black-arrow{
+            width: 8px;
+            height: 4px;
+            background-image: url("${url}images/select_arrow_black.png");
+            background-repeat: no-repeat;
+            display: block;
+            margin: 0 auto;
+          }
+          :host(m-icon-function) .m-function .m-function-tip-up .black-arrow {
+            transform: rotate(180deg);
+          }
+          :host(m-icon-function) .m-function .m-function-tip .tip-content {
+            width: fit-content;
+            padding: 8px;
+            color: var(--m-icon-function-tip-color, #fff);
+            font-size: 12px;
+            line-height: 1;
+            border-radius: 3px;
+            background-color: var(--m-icon-function-tip-bg, #000);
+            box-shadow: rgba(0,0,0,0.25) 4px 4px 10px;
+            display: block;
+          }
+        </style>
+        <div class="m-function${disabled ? " disabled" : ""}">
+          <div class="m-function-content">
+            <i class="m-iconfont ${
+              iconClass ? iconClass : icon ? "" : "icon-ios-help-circle-outl"
+            }">${icon ? icon : ""}</i>
+            <div class="visible-tip">${tip ? tip : ""}</div>
+          </div>
+          <div class="m-function-tip m-function-tip-up">
+            <span class="tip-content">${tip ? tip : ""}</span>
+            <span class="black-arrow"></span>
+          </div>
+          <div class="m-function-tip m-function-tip-down">
+            <span class="black-arrow"></span>
+            <span class="tip-content">${tip ? tip : ""}</span>
+          </div>
+        </div>
+      `;
       shadow.innerHTML = html;
-      let tipWidth = this.shadowRoot.querySelector(".visible-tip").clientWidth;
-      this.shadowRoot.querySelector(".m-function-tip-up").style.width =
-        tipWidth + 16 + "px";
-      this.shadowRoot.querySelector(".m-function-tip-down").style.width =
-        tipWidth + 16 + "px";
-      this.shadowRoot.querySelector(".m-function-tip-up").style.left =
-        -tipWidth / 2 + 8 + "px";
-      this.shadowRoot.querySelector(".m-function-tip-down").style.left =
-        -tipWidth / 2 + 8 + "px";
-      this.shadowRoot.querySelector(".visible-tip").remove();
+      // this.shadowRoot.querySelector(".visible-tip").remove();
       this.addEventListener("mouseenter", this.mouseEnterListener);
       this.addEventListener("click", function(e) {
         if (self.disabled) {
@@ -2833,7 +2884,20 @@
     }
 
     mouseEnterListener() {
-      let top = this.getBoundingClientRect().y;
+      if (this.disabled) {
+        return false;
+      }
+      if (!this.hasAttribute("tip")) {
+        return false;
+      }
+      let tipWidth =
+        this.shadowRoot.querySelector(".visible-tip").clientWidth + 16;
+      this.shadowRoot.querySelector(".m-function-tip-up").style.width =
+        tipWidth + "px";
+      this.shadowRoot.querySelector(".m-function-tip-down").style.width =
+        tipWidth + "px";
+      let componentPosition = this.getBoundingClientRect();
+      let top = componentPosition.y;
       if (top && top > 80) {
         this.shadowRoot
           .querySelector(".m-function")
@@ -2841,6 +2905,13 @@
         this.shadowRoot
           .querySelector(".m-function")
           .classList.add("m-function-up");
+        this.shadowRoot.querySelector(
+          ".m-function .m-function-tip-up"
+        ).style.top = componentPosition.y - 37 + "px";
+        this.shadowRoot.querySelector(
+          ".m-function .m-function-tip-up"
+        ).style.left =
+          componentPosition.x - tipWidth / 2 + this.offsetWidth / 2 + "px";
       } else {
         this.shadowRoot
           .querySelector(".m-function")
@@ -2848,6 +2919,13 @@
         this.shadowRoot
           .querySelector(".m-function")
           .classList.add("m-function-down");
+        this.shadowRoot.querySelector(
+          ".m-function .m-function-tip-down"
+        ).style.top = componentPosition.y + this.offsetHeight + 5 + "px";
+        this.shadowRoot.querySelector(
+          ".m-function .m-function-tip-down"
+        ).style.left =
+          componentPosition.x - tipWidth / 2 + this.offsetWidth / 2 + "px";
       }
     }
 
@@ -3766,6 +3844,303 @@
       renderMingTable.apply(this);
     }
 
+    destroy() {
+      // 销毁所有表格内容
+      this.shadowRoot.querySelector(".table-body").classList = "table-body";
+      delete this.config;
+      this.children.forEach(function(item) {
+        item.remove();
+      });
+    }
+
+    showError() {
+      this.hideEmpty();
+      this.config.error = true;
+      this.shadowRoot.querySelector(".table-body").classList.add("error");
+    }
+
+    hideError() {
+      delete this.config.error;
+      this.shadowRoot.querySelector(".table-body").classList = "table-body";
+    }
+
+    showEmpty() {
+      this.hideError();
+      this.config.empty = true;
+      this.shadowRoot.querySelector(".table-body").classList.add("empty");
+    }
+
+    hideEmpty() {
+      delete this.config.empty;
+      this.shadowRoot.querySelector(".table-body").classList = "table-body";
+    }
+
+    getOption(option) {
+      switch (option) {
+        case "pageSize":
+          return this.config.pageSize;
+          break;
+        case "pageNumber":
+          return this.config.pageNumber;
+          break;
+        case "columns":
+          return this.config.columns;
+          break;
+        case "error":
+          return !!this.config.error;
+          break;
+        case "empty":
+          return !!this.config.empty;
+          break;
+        default:
+          return undefined;
+      }
+    }
+
+    setOption(option, value) {
+      switch (option) {
+        case "pageSize":
+          if (value != null && typeof value === "number") {
+            this.config.pageNumber = 1;
+            this.config.pageSize = value;
+            this.render();
+          }
+          break;
+        case "pageNumber":
+          if (value != null && typeof value === "number") {
+            this.config.pageNumber = value;
+            this.render();
+          }
+          break;
+        case "success":
+          if (value != null && typeof value === "function") {
+            this.config.success = value;
+            this.render();
+          }
+          break;
+        case "error":
+          if (value != null && typeof value === "function") {
+            this.config.error = value;
+            this.render();
+          }
+          break;
+        case "refresh":
+          if (this.config) {
+            this.render();
+          }
+          break;
+        case "reload":
+          if (this.config) {
+            this.render();
+          }
+          break;
+        case "previous":
+          if (
+            this.config &&
+            this.config.pageNumber &&
+            typeof this.config.pageNumber === "number" &&
+            this.config.pageNumber > 1
+          ) {
+            this.config.pageNumber--;
+            this.render();
+          }
+          break;
+        case "next":
+          if (
+            this.config &&
+            this.config.pageNumber &&
+            this.config.maxPageNumber &&
+            typeof this.config.pageNumber === "number" &&
+            typeof this.config.maxPageNumber === "number" &&
+            this.config.pageNumber < this.config.maxPageNumber
+          ) {
+            this.config.pageNumber++;
+            this.render();
+          }
+          break;
+        case "first":
+          if (
+            this.config &&
+            this.config.pageNumber &&
+            typeof this.config.pageNumber === "number" &&
+            this.config.pageNumber != 1
+          ) {
+            this.config.pageNumber = 1;
+            this.render();
+          }
+          break;
+        case "last":
+          if (
+            this.config &&
+            this.config.pageNumber &&
+            this.config.maxPageNumber &&
+            typeof this.config.pageNumber === "number" &&
+            typeof this.config.maxPageNumber === "number" &&
+            this.config.pageNumber < this.config.maxPageNumber
+          ) {
+            this.config.pageNumber = this.config.maxPageNumber;
+            this.render();
+          }
+          break;
+        default:
+          return undefined;
+      }
+    }
+  }
+
+  // m-simple-table 定义
+  class mSimpleTable extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 初始化组件
+      let self = this;
+      let shadowRoot = null;
+      if (this.shadowRoot) {
+        shadowRoot = this.shadowRoot;
+      } else {
+        shadowRoot = this.attachShadow({ mode: "open" });
+        shadowRoot.resetStyleInheritance = true; // 重置样式
+      }
+      let shadowContent = `
+        <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
+        <style type="text/css">
+        :host(m-simple-table) {
+          width: fit-content;
+          min-width: 300px;
+          max-width: 100%;
+          font-size: 14px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          margin: 0 auto;
+        }
+        :host(m-simple-table) .table-body {
+          width: calc(100% - 80px);
+          min-height: 100px;
+          overflow: hidden;
+          border-radius: 12px;
+          box-shadow: 4px 4px 10px rgba(0, 0, 0, .1);
+          margin: 0 auto;
+        }
+        :host(m-simple-table) .table-body .table-header {
+          width: 100%;
+          background-color: #eef2f6;
+        }
+        :host(m-simple-table) .table-body .table-main {
+          width: 100%;
+          overflow-y: auto;
+          background-color: #fff;
+          display: flex;
+          flex-direction: column;
+        }
+        :host(m-simple-table) .table-body.error,
+        :host(m-simple-table) .table-body.empty {
+          width: 100%;
+        }
+        :host(m-simple-table) .table-body.error > .table-main,
+        :host(m-simple-table) .table-body.empty > .table-main {
+          width: 100%;
+          min-height: 320px;
+          background-color: #f5f5f5;
+        }
+        :host(m-simple-table) .table-body.error .error,
+        :host(m-simple-table) .table-body.empty .empty {
+          height: 100%;
+        }
+        :host(m-simple-table) .table-main .error,
+        :host(m-simple-table) .table-main .empty {
+          width: 100%;
+          height: 0;
+          color: #9f9f9f;
+          font-size: 20px;
+          overflow: hidden;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        :host(m-simple-table) .table-main .error i,
+        :host(m-simple-table) .table-main .empty i {
+          font-size: 120px;
+        }
+        :host(m-simple-table) .table-main .error i {
+          color: #dd5454;
+        }
+        :host(m-simple-table) .table-main .error div:not(:first-child),
+        :host(m-simple-table) .table-main .empty div:not(:first-child) {
+          margin-top: 30px;
+        }
+        :host(m-simple-table) .table-footer {
+          width: 100%;
+          height: 62px;
+          padding: 20px 0;
+          box-sizing: border-box;
+        }
+        </style>
+        <div class="table-body">
+            <div class="table-header">
+                <slot name="main-table-header"></slot>
+            </div>
+            <div class="table-main">
+                <div>
+                  <slot name="main-table"></slot>
+                </div>
+                <div class="error">
+                    <div><i class="m-iconfont ming-icon-bug"></i></div>
+                    <div>组件内部出现错误，请审查</div>
+                </div>
+                <div class="empty">
+                    <div><i class="m-iconfont ming-icon-cloud-fail"></i></div>
+                    <div>数据不见啦，空空如也~</div>
+                </div>
+            </div>
+        </div>
+        <div class="table-footer">
+            <slot name="table-footer"></slot>
+        </div>
+      `;
+      shadowRoot.innerHTML = shadowContent;
+      let observer = new MutationObserver(function() {
+        syncFixedTable.call(self);
+      });
+      observer.observe(self, {
+        attributes: true,
+        attributeOldValue: true,
+        attributeFilter: ["style", "clientWidth", "offsetWidth"]
+      });
+      this.addEventListener("mouseover", function() {
+        syncFixedTable.call(self);
+      });
+      window.addEventListener("resize", function() {
+        syncFixedTable.call(self);
+      });
+    }
+
+    register(config) {
+      // 配置m-table格式
+      configMingTable.apply(this, [config]);
+    }
+
+    render() {
+      // 渲染数据表格
+      renderMingTable.apply(this);
+    }
+
+    destroy() {
+      // 销毁所有表格内容
+      this.shadowRoot.querySelector(".table-body").classList = "table-body";
+      delete this.config;
+      this.children.forEach(function(item) {
+        item.remove();
+      });
+    }
+
     showError() {
       this.hideEmpty();
       this.config.error = true;
@@ -3915,6 +4290,5 @@
   window.customElements.define("m-menu", mMenu); // m-menu 注册
   window.customElements.define("m-inner-cell", mInnerCell); // m-table 注册
   window.customElements.define("m-table", mTable); // m-table 注册
-
-  document.ming = new Object();
+  window.customElements.define("m-simple-table", mSimpleTable); // m-table 注册
 })();

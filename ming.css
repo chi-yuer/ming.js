@@ -6,163 +6,294 @@
  */
 
 body {
-    margin: 0;
+  margin: 0;
 }
 
 :not(:defined) {
-    opacity: 0;
-    transition: opacity 300ms linear;
+  opacity: 0;
+  transition: opacity 300ms linear;
 }
 
 :unresolved {
-    opacity: 0;
-    transition: opacity 300ms linear;
+  opacity: 0;
+  transition: opacity 300ms linear;
 }
 
 :defined,
 :not(:unresolved) {
-    opacity: 1;
+  opacity: 1;
 }
 
+/* ==========================================================================
+   m-table 组件样式
+ ============================================================================ */
+
 m-table table {
-    border: none;
+  border: none;
 }
 
 m-table table th,
 m-table table td {
-    padding: 15px;
-    text-overflow: ellipsis;
-    box-sizing: border-box;
+  padding: 15px;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 m-table table th {
-    color: #333;
+  color: #333;
 }
 
 m-table table tr:nth-of-type(2) th {
-    color: #000;
+  color: #000;
 }
 
 m-table table tr:nth-of-type(2) th[colspan] {
-    text-align: center;
+  text-align: center;
 }
 
 m-table table td {
-    color: #666;
+  color: #666;
 }
 
 m-table table tr[row-index="r-1"] th,
 m-table table tr[row-index="r-1"] th {
-    padding: 0 15px;
+  padding: 0 15px;
 }
 
 m-table table th > div.inner-cell,
 m-table table td > div.inner-cell {
-    width: fit-content;
-    display: inline-flex;
+  width: fit-content;
+  display: inline-flex;
 }
 
 m-table table.m-table-main-header,
 m-table table.m-table-main-body {
-    width: fit-content;
-    min-width: 100%;
-    overflow: hidden;
-    table-layout: fixed;
+  width: fit-content;
+  min-width: 100%;
+  overflow: hidden;
+  table-layout: fixed;
 }
 
 m-table table.m-table-fixed-header,
 m-table table.m-table-fixed-body {
-    width: fit-content;
-    max-width: 100%;
-    overflow: hidden;
-    table-layout: fixed;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  table-layout: fixed;
 }
 
 m-table table.m-table-main-header th,
 m-table table.m-table-fixed-header th,
 m-table table.m-table-main-body td,
 m-table table.m-table-fixed-body td {
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 m-table table.m-table-main-header th,
 m-table table.m-table-main-body td {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 m-table table.m-table-main-body td,
 m-table table.m-table-fixed-body td {
-    border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid #ebeff2;
 }
 
 m-table table.m-table-main-header th.fixed-column,
 m-table table.m-table-main-body td.fixed-column {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 m-table table.m-table-main-header th.border-left-column,
 m-table table.m-table-main-body td:first-of-type {
-    padding-left: 20px;
+  padding-left: 20px;
 }
 
 m-table table.m-table-main-header th.border-right-column,
 m-table table.m-table-main-body td:last-of-type {
-    padding-right: 20px;
+  padding-right: 20px;
 }
 
 m-table table.m-table-fixed-header th:last-of-type,
 m-table table.m-table-fixed-body td:last-of-type {
-    padding-right: 20px;
+  padding-right: 20px;
 }
 
 m-table .m-table-footer {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0;
 }
 
 m-table .m-table-footer li {
-    min-width: 32px;
-    height: 32px;
-    padding: 0 10px;
-    color: #666;
-    line-height: 32px;
-    text-align: center;
-    cursor: default;
-    border-radius: 16px;
-    background-color: #f2f2f2;
-    display: inline-flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  color: #666;
+  line-height: 32px;
+  text-align: center;
+  cursor: default;
+  border-radius: 16px;
+  background-color: #f2f2f2;
+  display: inline-flex;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
 }
 
 m-table .m-table-footer li:not(:first-of-type) {
-    margin-left: 8px;
+  margin-left: 8px;
 }
 
 m-table .m-table-footer li.active,
 m-table .m-table-footer li:hover {
-    color: #fff;
-    background-color: #0359ff;
+  color: #fff;
+  background-color: #0359ff;
 }
 
 m-table .m-table-footer li:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 m-table .m-table-footer li.active:hover {
-    cursor: default;
+  cursor: default;
 }
 
 m-table .m-table-footer li.disabled,
 m-table .m-table-footer li.disabled:hover {
-    color: #d6d9db;
-    cursor: not-allowed;
-    background-color: #f2f2f2;
+  color: #d6d9db;
+  cursor: not-allowed;
+  background-color: #f2f2f2;
+}
+
+/* ==========================================================================
+   m-simple-table 组件样式
+ ============================================================================ */
+
+m-simple-table table {
+  border: none;
+}
+
+m-simple-table table th,
+m-simple-table table td {
+  padding: 20px;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+m-simple-table table th {
+  color: #858585;
+  font-weight: normal;
+}
+
+m-simple-table table tr:nth-of-type(2) th[colspan] {
+  text-align: center;
+}
+
+m-simple-table table td {
+  color: #666;
+  cursor: default;
+  transition: padding 0.2s linear, font-size 0.2s linear;
+}
+
+m-simple-table table tr[row-index="r-1"] th,
+m-simple-table table tr[row-index="r-1"] th {
+  padding: 0 20px;
+}
+
+m-simple-table table th > div.inner-cell,
+m-simple-table table td > div.inner-cell {
+  width: fit-content;
+  display: inline-flex;
+}
+
+m-simple-table table.m-table-main-header,
+m-simple-table table.m-table-main-body {
+  width: fit-content;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+m-simple-table table.m-table-main-header th,
+m-simple-table table.m-table-main-body td {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+m-simple-table table.m-table-main-body tr:hover td {
+  padding-top: 25px;
+  padding-bottom: 25px;
+  color: #000;
+  font-size: 18px;
+  background-color: #fcfcfc;
+}
+
+m-simple-table table.m-table-main-body tr:not(:last-of-type) td {
+  border-bottom: 1px solid #efefef;
+}
+
+m-simple-table table.m-table-main-header th.border-left-column,
+m-simple-table table.m-table-main-body td:first-of-type {
+  padding-left: 40px;
+}
+
+m-simple-table table.m-table-main-header th.border-right-column,
+m-simple-table table.m-table-main-body td:last-of-type {
+  padding-right: 40px;
+}
+
+m-simple-table .m-table-footer {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0;
+}
+
+m-simple-table .m-table-footer li {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  color: #666;
+  line-height: 32px;
+  text-align: center;
+  cursor: default;
+  border-radius: 16px;
+  background-color: #f2f2f2;
+  display: inline-flex;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+}
+
+m-simple-table .m-table-footer li:not(:first-of-type) {
+  margin-left: 8px;
+}
+
+m-simple-table .m-table-footer li.active,
+m-simple-table .m-table-footer li:hover {
+  color: #fff;
+  background-color: #0359ff;
+}
+
+m-simple-table .m-table-footer li:hover {
+  cursor: pointer;
+}
+
+m-simple-table .m-table-footer li.active:hover {
+  cursor: default;
+}
+
+m-simple-table .m-table-footer li.disabled,
+m-simple-table .m-table-footer li.disabled:hover {
+  color: #d6d9db;
+  cursor: not-allowed;
+  background-color: #f2f2f2;
 }

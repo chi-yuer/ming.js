@@ -335,7 +335,7 @@
 
 
 
-### m-table
+### m-table/m-simple-table
 
 **Attributes**
 
@@ -353,6 +353,7 @@
 
 -   **register(config) :** config this component
 -   **render():** re-render this table
+-   **destroy():** destroy this table
 -   **showError():** show table error page
 -   **hideError():** hide table error page
 -   **showEmpty():** show table empty page

@@ -335,7 +335,7 @@
 
 
 
-### m-table
+### m-table/m-simple-table
 
 **属性**
 
@@ -353,6 +353,7 @@
 
 -   **register(config) :** 配置表格组件，config 参数为必须
 -   **render():** 重新获取值渲染表格
+-   **destroy():** 移除表格配置和内容
 -   **showError():** 显示表格渲染错误的页面
 -   **hideError():** 隐藏表格渲染错误的也米娜
 -   **showEmpty():** 显示无数据页面
