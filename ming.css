@@ -201,7 +201,6 @@ m-simple-table table td {
   transition: padding 0.2s linear, font-size 0.2s linear;
 }
 
-m-simple-table table tr[row-index="r-1"] th,
 m-simple-table table tr[row-index="r-1"] th {
   padding: 0 20px;
 }
@@ -229,11 +228,10 @@ m-simple-table table.m-table-main-body tr:hover td {
   padding-top: 25px;
   padding-bottom: 25px;
   color: #000;
-  font-size: 18px;
   background-color: #fcfcfc;
 }
 
-m-simple-table table.m-table-main-body tr:not(:last-of-type) td {
+m-simple-table table.m-table-main-body tr td {
   border-bottom: 1px solid #efefef;
 }
 

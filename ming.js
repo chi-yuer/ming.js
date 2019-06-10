@@ -776,7 +776,7 @@
             if (column.formatter) {
               // 如果存在自定义数据格式化
               columnValue = eval(
-                `column.formatter(row, row.${column.field}, rowIndex)`
+                `column.formatter(columnValue, row.${column.field}, rowIndex)`
               );
             }
             let mainColumn = document.createElement("td");
@@ -930,10 +930,10 @@
         eval(`param.config.success(param.container, param.tableData)`);
       }
     } else {
-      if (param.config.error && typeof param.config.error == "function") {
-        eval(`param.config.error(param.container, param.tableData)`);
+      if (param.config.empty && typeof param.config.empty == "function") {
+        eval(`param.config.empty(param.container, param.tableData)`);
       }
-      param.container.showError();
+      param.container.showEmpty();
     }
     try {
       // 动态计算宽高度
@@ -1148,8 +1148,18 @@
   class mOption extends HTMLElement {
     constructor() {
       super();
+    }
+
+    connectedCallback() {
       this.initVerification();
       this.initComponent();
+      if (!this.previousElementSibling || this.hasAttribute("selected")) {
+        this.parentElement.resetSelect();
+      }
+      this.style.padding = "0 !important";
+      let optionWidth = this.clientWidth;
+      this.style.padding = false;
+      this.parentNode.calcLabelSize(optionWidth); // 计算label的尺寸
     }
 
     initVerification() {
@@ -1188,16 +1198,7 @@
       }
       this.selected = true;
       this.parentElement.changeEvent.value = this.getAttribute("value");
-    }
-
-    connectedCallback() {
-      if (!this.previousElementSibling || this.hasAttribute("selected")) {
-        this.parentElement.resetSelect();
-      }
-      this.style.padding = "0 !important";
-      let optionWidth = this.clientWidth;
-      this.style.padding = false;
-      this.parentNode.calcLabelSize(optionWidth); // 计算label的尺寸
+      this.parentElement.removeHoverState();
     }
 
     get value() {
@@ -1252,6 +1253,13 @@
       this.initComponent();
     }
 
+    connectedCallback() {
+      // 挂载到文档流生命周期钩子
+      if (this.parentElement.nodeName == "M-FORM-ITEM") {
+        this.parentElement.noEmpty();
+      }
+    }
+
     initComponent() {
       // 取值
       let self = this;
@@ -1279,14 +1287,14 @@
             display: inline-flex;
           }
           :host(m-select) .m-select {
-            width: fit-content;
-            max-width: 240px;
+            width: var(--m-select-width, fit-content);
+            max-width: var(--m-select-width, 240px);
             padding: var(--m-select-padding, 0 15px);
             color: var(--m-select-color, #8f8f8f);
             box-sizing: border-box;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
           }
           :host(m-select) .m-select.disabled,
           :host(m-select) .m-select.active.disabled {
@@ -1358,12 +1366,12 @@
             list-style: none;
             border-radius: 4px;
             background-color: #fff;
-            box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
+            box-shadow: rgba(0,0,0,.1) 4px 2px 4px;
             box-sizing: border-box;
             position: relative;
           }
           :host(m-select) .m-select-option.rotate .option-list {
-            box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
+            box-shadow: rgba(0,0,0,.1) 4px 2px 4px;
           }
           :host(m-select) .m-select-option .option-list > div:first-child {
             width: 100%;
@@ -1544,18 +1552,35 @@
 
     calcLabelSize(optionWidth) {
       let self = this;
+      let selectStyle = window.getComputedStyle(this);
       if (self.optionWidth == undefined) {
         self.operationWidth = 0;
       }
       self.optionWidth =
         self.optionWidth > optionWidth ? self.optionWidth : optionWidth;
-      this.shadowRoot.querySelector(".m-select").style.width =
-        self.optionWidth + 32 + "px";
+      if (selectStyle.getPropertyValue("--m-select-width") == "") {
+        this.shadowRoot.querySelector(".m-select").style.width =
+          self.optionWidth + 32 + "px";
+      }
     }
 
     calcWidthAndPosition() {
       let self = this;
-      self.optionWidth = Math.max(self.optionWidth, this.offsetWidth);
+      let selectStyle = window.getComputedStyle(
+        this.shadowRoot.querySelector(".m-select")
+      );
+      let selectWidth = new RegExp(/px/).test(
+        selectStyle.getPropertyValue("--m-select-width")
+      )
+        ? parseFloat(
+            selectStyle.getPropertyValue("--m-select-width").replace("px", "")
+          )
+        : 0;
+      self.optionWidth = Math.max(
+        self.optionWidth,
+        this.offsetWidth,
+        selectWidth
+      );
       this.shadowRoot.querySelector(".m-select-option").style.width =
         self.optionWidth + "px";
       let componentPosition = self.getBoundingClientRect();
@@ -1662,6 +1687,28 @@
       this.initComponent();
     }
 
+    connectedCallback() {
+      // 挂载DOM时生命周期钩子
+      let inputType = this.getAttribute("type") || "text";
+      let value = this.getAttribute("value") || "";
+      if (
+        value &&
+        value != "" &&
+        this.parentElement.nodeName == "M-FORM-ITEM" &&
+        typeof this.parentElement.noEmpty == "function"
+      ) {
+        this.parentElement.noEmpty();
+      }
+      if (this.parentElement.nodeName == "M-FORM-ITEM") {
+        this.addEventListener("change", function() {
+          this.parentElement.removeAttribute("error");
+        });
+      }
+      if (inputType == "date") {
+        this.parentElement.noEmpty();
+      }
+    }
+
     initComponent() {
       // 组件初始化
       let self = this;
@@ -1696,7 +1743,7 @@
         :host(m-input) input {
           width: var(--m-input-width, auto);
           padding: 0 5px;
-          color: var(--m-input-color, #5f5f5f);
+          color: var(--m-input-color, rgba(0,0,0,0.87));
           line-height: var(--m-input-line-height, 30px);
           border: none;
           outline: none;
@@ -1731,20 +1778,26 @@
       self.changeEvent.initEvent("change", false, false);
       this.shadowRoot
         .querySelector("input")
-        .addEventListener("focus", function() {
+        .addEventListener("focus", function(event) {
+          event.stopPropagation();
           self.focusEventHandler.call(self);
           self.dispatchEvent(self.focusEvent);
+          return false;
         });
       this.shadowRoot
         .querySelector("input")
-        .addEventListener("blur", function() {
+        .addEventListener("blur", function(event) {
+          event.stopPropagation();
           self.blurEventHandler.call(self);
           self.dispatchEvent(self.blurEvent);
+          return false;
         });
       this.shadowRoot
         .querySelector("input")
-        .addEventListener("change", function() {
+        .addEventListener("change", function(event) {
+          event.stopPropagation();
           self.dispatchEvent(self.changeEvent);
+          return false;
         });
     }
 
@@ -1760,10 +1813,18 @@
       // 输入框失去焦点
       this.shadowRoot.querySelector("div").classList.remove("active");
       if (this.parentNode.nodeName == "M-FORM-ITEM") {
-        if (this.value == undefined || this.value == null || this.value == "") {
-          this.parentNode.blurEmpty();
-        } else {
+        if (this.type == "date") {
           this.parentNode.blur();
+        } else {
+          if (
+            this.value == undefined ||
+            this.value == null ||
+            this.value == ""
+          ) {
+            this.parentNode.blurEmpty();
+          } else {
+            this.parentNode.blur();
+          }
         }
       }
     }
@@ -1786,6 +1847,18 @@
       }
       this.setAttribute("value", value);
       this.shadowRoot.querySelector("input").value = value;
+      let inputType = this.getAttribute("type") || "text";
+      if (
+        value &&
+        value != "" &&
+        this.parentElement.nodeName == "M-FORM-ITEM" &&
+        typeof this.parentElement.noEmpty == "function"
+      ) {
+        this.parentElement.noEmpty();
+      }
+      if (inputType == "date") {
+        this.parentElement.noEmpty();
+      }
     }
 
     get placeholder() {
@@ -1932,7 +2005,7 @@
         this.removeAttribute("selected");
       }
       this.changeEvent.value = this.shadowRoot
-        .querySelector("switch")
+        .querySelector(".switch")
         .classList.contains("active");
       this.dispatchEvent(this.changeEvent);
     }
@@ -1976,7 +2049,7 @@
 
     initVerification() {
       // 合法性验证
-      if (this.children.length != 1) {
+      if (this.children.length > 1) {
         let param = {
           name: "m-form-item",
           message: "this component should have only one child node"
@@ -1984,6 +2057,7 @@
         mError.apply(param, [this]);
       }
       if (
+        this.children.length > 0 &&
         this.children[0].nodeName != "M-INPUT" &&
         this.children[0].nodeName != "M-SELECT"
       ) {
@@ -2000,16 +2074,20 @@
       // 组件初始化
       let self = this;
       let name = self.getAttribute("name") || "name";
-      let value = self.children[0].value;
+      let value = self.children.length > 0 ? self.children[0].value : "";
       let empty = false;
-      switch (self.children[0].nodeName) {
-        case "M-INPUT":
-          if (value == undefined || value == null || value == "") {
-            empty = true;
-          }
-          break;
-        case "M-SELECT":
-          break;
+      if (self.children.length > 0) {
+        switch (self.children[0].nodeName) {
+          case "M-INPUT":
+            if (value == undefined || value == null || value == "") {
+              empty = true;
+            }
+            break;
+          case "M-SELECT":
+            break;
+        }
+      } else {
+        empty = true;
       }
       let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
       shadow.resetStyleInheritance = true; // 重置样式
@@ -2034,6 +2112,14 @@
             left: 0;
             z-index: 50;
           }
+          :host(m-form-item[required]) .name::after {
+            content: "*";
+            color: #d9534f;
+            margin: -2px 0 0 2px;
+          }
+          :host(m-form-item[error]) .name {
+            color: var(--m-error-color, #d9534f) !important;
+          }
           :host(m-form-item) :not(.empty) .name {
             color: #b3b3b3;
             font-size: 12px;
@@ -2044,7 +2130,7 @@
             color: var(--m-form-item-active-color, #0359ff);
           }
           :host(m-form-item) .empty .name {
-            color: var(--m-form-item-color, #b3b3b3);
+            color: var(--m-form-item-color, rgba(0,0,0,0.38));
             font-size: inherit;
             line-height: 30px;
             top: 20px;
@@ -2053,9 +2139,14 @@
             height: 30px;
             border-bottom: 1px solid #e6e6e6;
             --m-select-padding: 0 5px;
+            --m-select-color: rgba(0,0,0,0.87);
           }
           :host(m-form-item) ::slotted(m-select[disabled]) {
             border-bottom: 1px solid #f6f6f6;
+          }
+          :host(m-form-item[error]) ::slotted(m-input) {
+            --m-input-border-color: var(--m-error-color, #d9534f);
+            --m-input-active-border-color: var(--m-error-color, #d9534f);
           }
         </style>
         <div class="item${empty ? " empty" : ""}">
@@ -2066,17 +2157,11 @@
         </div>
       `;
       shadow.innerHTML = html;
-      switch (self.children[0].nodeName) {
-        case "M-INPUT":
-          this.shadowRoot
-            .querySelector(".name")
-            .addEventListener("click", function() {
-              self.children[0].focus();
-            });
-          break;
-        case "M-SELECT":
-          break;
-      }
+      this.shadowRoot
+        .querySelector(".name")
+        .addEventListener("click", function() {
+          self.children[0].focus();
+        });
     }
 
     focus() {
@@ -2092,14 +2177,53 @@
     blur() {
       this.shadowRoot.querySelector(".item").classList.remove("active");
     }
+
+    noEmpty() {
+      this.shadowRoot.querySelector(".item").classList.remove("empty");
+    }
+
+    set name(value) {
+      this.shadowRoot.querySelector(".item .name").innerHTML = value;
+    }
+
+    get name() {
+      return this.shadowRoot.querySelector(".item .name").innerHTML;
+    }
+
+    set required(value) {
+      if (value) {
+        this.setAttribute("required", "");
+      } else {
+        this.removeAttribute("required");
+      }
+    }
+
+    set error(value) {
+      if (value) {
+        this.setAttribute("error", "");
+        if (this.children[0].nodeName == "M-INPUT") {
+          this.children[0].focus();
+        }
+      } else {
+        this.removeAttribute("error");
+      }
+    }
+
+    get error() {
+      return this.hasAttribute("error");
+    }
   }
 
   // m-operation 定义
   class mOperation extends HTMLElement {
     constructor() {
       super();
-      this.initVerification();
       this.initComponent();
+    }
+
+    attachedCallback() {
+      // 挂在生命周期钩子
+      this.initVerification();
     }
 
     initVerification() {
@@ -2130,16 +2254,35 @@
         // 操作是否禁用
         return false;
       }
-      if (this.operation) {
+      let operation = this.operation;
+      let operationName = operation ? operation.replace(/\((.)*\)/g, "") : "";
+      if (operation) {
         try {
-          eval(`${this.operation}(obj, e)`);
+          if (
+            new RegExp(/\(/).test(operation) &&
+            new RegExp(/\)/).test(operation)
+          ) {
+            let paramStr = operation
+              .match(new RegExp(/\((.)*\)/))[0]
+              .replace("(", "")
+              .replace(")", "");
+            eval(`${operationName}(this, e${paramStr ? ", " + paramStr : ""})`);
+          } else {
+            eval(`${operationName}(this, e)`);
+          }
         } catch (e) {
           let error = {
             name: "m-operation",
-            message: `function <${this.operation}> is not defined`
+            message: `function <${operationName}> is not defined`
           };
           mError.apply(error, [this]);
         }
+      } else {
+        let error = {
+          name: "m-operation",
+          message: `function <${operationName}> is not defined`
+        };
+        mError.apply(error, [this]);
       }
     }
 
@@ -2192,135 +2335,135 @@
       let html = `
         <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
         <style type="text/css">
-            :host(m-operation-list) {
-                cursor: default;
-                display: inline-flex;
-                position: relative;
-            }
-            :host(m-operation-list) .m-operation-tip {
-                width: 125px;
-                height: 32px;
-                padding: 0 12px;
-                color: var(--m-operation-list-color, #fff);
-                font-size: 14px;
-                border-radius: 16px;
-                background-color: var(--m-operation-list-bg, #0359ff);
-                box-sizing: border-box;
-                display: inline-flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            :host(m-operation-list) .m-operation-tip.disabled,
-            :host(m-operation-list:hover) .m-operation-tip.disabled {
-                color: var(--m-operation-list-disable-color, #8f8f8f);
-                background-color: var(--m-operation-list-disable-bg, #e9e9e9);
-                cursor: not-allowed;
-            }
-            :host(m-operation-list:hover) .m-operation-tip {
-            }
-            :host(m-operation-list) .m-operation-tip span,
-            :host(m-operation-list) .m-operation-tip i {
-                line-height: 1;
-            }
-            :host(m-operation-list) .m-operation-tip i:last-of-type {
-                margin-left: 5px;
-                transition: transform 200ms linear;
-            }
-            :host(m-operation-list) .m-operation-tip i.arrow-rotate {
-                transform: rotateX(180deg);
-            }
-            :host(m-operation-list) .m-operation-list {
-                width: fit-content;
-                max-width: 180px;
-                height: 0;
-                padding: 0;
-                overflow: hidden;
-                transition: height .3s ease, opacity .2s linear;
-                position: fixed;
-                z-index: 0;
-            }
-            :host(m-operation-list) .m-operation-list.active {
-                opacity: 1;
-            }
-            :host(m-operation-list) .m-operation-list .arrow-up {
-                content: "";
-                width: 100%;
-                height: 4px;
-                background-image: url("${url}images/select_arrow.png");
-                background-repeat: no-repeat;
-                background-position: center 0;
-                display: block;
-            }
-            :host(m-operation-list) .m-operation-list.rotate .arrow-up {
-                display: none;
-            }
-            :host(m-operation-list) .m-operation-list .arrow-down {
-                content: "";
-                width: 100%;
-                height: 4px;
-                background-image: url("${url}images/select_arrow.png");
-                background-repeat: no-repeat;
-                background-position: center 0;
-                transform: rotate(180deg);
-                display: none;
-            }
-            :host(m-operation-list) .m-operation-list.rotate .arrow-down {
-                display: block;
-            }
-            :host(m-operation-list) .m-operation-list .operation-list {
-                width: 100%;
-                height: fit-content;
-                padding: 8px 0;
-                list-style: none;
-                border-radius: 4px;
-                background-color: #fff;
-                box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
-                box-sizing: border-box;
-                position: relative;
-            }
-            :host(m-select) .m-operation-list.rotate .operation-list {
-                box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
-            }
-            :host(m-select) .m-operation-list .operation-list > div:first-child {
-                width: 100%;
-                height: fit-content;
-                overflow: hidden;
-                position: relative;
-            }
-            :host(m-operation-list) .m-operation-list ::slotted(m-operation) {
-                width: 100%;
-                padding: 0 12px;
-                color: var(--m-operation-color, #333);
-                white-space: nowrap;
-                line-height: 30px;
-                text-overflow: ellipsis;
-                list-style: none;
-                overflow: hidden;
-                box-sizing: border-box;
-                display: block;
-            }
-            :host(m-operation-list) .m-operation-list ::slotted(m-operation:hover) {
-                color: var(--m-operation-active-color, #0359ff);
-                background-color: var(--m-operation-active-bg, #f3f3f3);
-            }
-            :host(m-operation-list) .m-operation-list ::slotted(m-operation[disabled]) {
-                color: var(--m-operation-disable-color, #8f8f8f);
-                cursor: not-allowed;
-                background: none;
-            }
-        </style>
-        <div class="m-operation-tip${disabled ? " disabled" : ""}">
-            <i class="m-iconfont ming-icon-operation"></i>
-            <span>相关操作</span>
-            <i class="arrow m-iconfont ming-icon-arrow-down"></i>
-        </div>
-        <div class="m-operation-list">
-            <div class="arrow-up"></div>
-            <div class="operation-list">
-                <div><slot></slot></div>
-            </div>
-            <div class="arrow-down"></div>
-        </div>
+        :host(m-operation-list) {
+            cursor: default;
+            display: inline-flex;
+            position: relative;
+        }
+        :host(m-operation-list) .m-operation-tip {
+            width: 125px;
+            height: 32px;
+            padding: 0 12px;
+            color: var(--m-operation-list-color, #fff);
+            font-size: 14px;
+            border-radius: 16px;
+            background-color: var(--m-operation-list-bg, #0359ff);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        :host(m-operation-list) .m-operation-tip.disabled,
+        :host(m-operation-list:hover) .m-operation-tip.disabled {
+            color: var(--m-operation-list-disable-color, #8f8f8f);
+            background-color: var(--m-operation-list-disable-bg, #e9e9e9);
+            cursor: not-allowed;
+        }
+        :host(m-operation-list:hover) .m-operation-tip {
+        }
+        :host(m-operation-list) .m-operation-tip span,
+        :host(m-operation-list) .m-operation-tip i {
+            line-height: 1;
+        }
+        :host(m-operation-list) .m-operation-tip i:last-of-type {
+            margin-left: 5px;
+            transition: transform 200ms linear;
+        }
+        :host(m-operation-list) .m-operation-tip i.arrow-rotate {
+            transform: rotateX(180deg);
+        }
+        :host(m-operation-list) .m-operation-list {
+            width: fit-content;
+            max-width: 180px;
+            height: 0;
+            padding: 0;
+            overflow: hidden;
+            transition: height .3s ease, opacity .2s linear;
+            position: fixed;
+            z-index: 0;
+        }
+        :host(m-operation-list) .m-operation-list.active {
+            opacity: 1;
+        }
+        :host(m-operation-list) .m-operation-list .arrow-up {
+            content: "";
+            width: 100%;
+            height: 4px;
+            background-image: url("${url}images/select_arrow.png");
+            background-repeat: no-repeat;
+            background-position: center 0;
+            display: block;
+        }
+        :host(m-operation-list) .m-operation-list.rotate .arrow-up {
+            display: none;
+        }
+        :host(m-operation-list) .m-operation-list .arrow-down {
+            content: "";
+            width: 100%;
+            height: 4px;
+            background-image: url("${url}images/select_arrow.png");
+            background-repeat: no-repeat;
+            background-position: center 0;
+            transform: rotate(180deg);
+            display: none;
+        }
+        :host(m-operation-list) .m-operation-list.rotate .arrow-down {
+            display: block;
+        }
+        :host(m-operation-list) .m-operation-list .operation-list {
+            width: 100%;
+            height: fit-content;
+            padding: 8px 0;
+            list-style: none;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: rgba(0,0,0,.1) 4px 4px 4px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        :host(m-select) .m-operation-list.rotate .operation-list {
+            box-shadow: rgba(0,0,0,.1) 4px -4px 4px;
+        }
+        :host(m-select) .m-operation-list .operation-list > div:first-child {
+            width: 100%;
+            height: fit-content;
+            overflow: hidden;
+            position: relative;
+        }
+        :host(m-operation-list) .m-operation-list ::slotted(m-operation) {
+            width: 100%;
+            padding: 0 12px;
+            color: var(--m-operation-color, #333);
+            white-space: nowrap;
+            line-height: 30px;
+            text-overflow: ellipsis;
+            list-style: none;
+            overflow: hidden;
+            box-sizing: border-box;
+            display: block;
+        }
+        :host(m-operation-list) .m-operation-list ::slotted(m-operation:hover) {
+            color: var(--m-operation-active-color, #0359ff);
+            background-color: var(--m-operation-active-bg, #f3f3f3);
+        }
+        :host(m-operation-list) .m-operation-list ::slotted(m-operation[disabled]) {
+            color: var(--m-operation-disable-color, #8f8f8f);
+            cursor: not-allowed;
+            background: none;
+        }
+      </style>
+      <div class="m-operation-tip${disabled ? " disabled" : ""}">
+          <i class="m-iconfont ming-icon-operation"></i>
+          <span>相关操作</span>
+          <i class="arrow m-iconfont ming-icon-arrow-down"></i>
+      </div>
+      <div class="m-operation-list">
+          <div class="arrow-up"></div>
+          <div class="operation-list">
+              <div><slot></slot></div>
+          </div>
+          <div class="arrow-down"></div>
+      </div>
     `;
       shadow.innerHTML = html;
       this.calcLabelSize(); // 计算宽度和位置
@@ -2607,16 +2750,36 @@
           obj: self,
           event: e
         };
+        let operationName = operation ? operation.replace(/\((.)*\)/g, "") : "";
+        let paramStr = "";
         if (operation) {
           try {
-            eval(`${operation}.apply(param, [])`);
+            if (eval(`typeof ${operationName} != "function"`)) {
+              throw new Error();
+            }
+            if (
+              new RegExp(/\(/).test(operation) &&
+              new RegExp(/\)/).test(operation)
+            ) {
+              paramStr = operation
+                .match(new RegExp(/\((.)*\)/))[0]
+                .replace("(", "")
+                .replace(")", "");
+            }
           } catch (e) {
             let error = {
               name: "m-function",
-              message: `function <${operation}> is not defined`
+              message: `function <${operationName}> is not defined`
             };
             mError.apply(error, [self]);
           }
+          eval(`${operationName}.apply(param, [${paramStr}])`);
+        } else {
+          let error = {
+            name: "m-function",
+            message: `function <${operationName}> is not defined`
+          };
+          mError.apply(error, [self]);
         }
       });
     }
@@ -2869,16 +3032,36 @@
           obj: self,
           event: e
         };
+        let operationName = operation ? operation.replace(/\((.)*\)/g, "") : "";
+        let paramStr = "";
         if (operation) {
           try {
-            eval(`${operation}.apply(param, [])`);
+            if (eval(`typeof ${operationName} != "function"`)) {
+              throw new Error();
+            }
+            if (
+              new RegExp(/\(/).test(operation) &&
+              new RegExp(/\)/).test(operation)
+            ) {
+              paramStr = operation
+                .match(new RegExp(/\((.)*\)/))[0]
+                .replace("(", "")
+                .replace(")", "");
+            }
           } catch (e) {
             let error = {
               name: "m-icon-function",
-              message: `function <${operation}> is not defined`
+              message: `function <${operationName}> is not defined`
             };
             mError.apply(error, [self]);
           }
+          eval(`${operationName}.apply(param, [${paramStr}])`);
+        } else {
+          let error = {
+            name: "m-icon-function",
+            message: `function <${operationName}> is not defined`
+          };
+          mError.apply(error, [self]);
         }
       });
     }
@@ -3848,7 +4031,7 @@
       // 销毁所有表格内容
       this.shadowRoot.querySelector(".table-body").classList = "table-body";
       delete this.config;
-      this.children.forEach(function(item) {
+      Array.from(this.children).forEach(function(item) {
         item.remove();
       });
     }
@@ -4136,7 +4319,7 @@
       // 销毁所有表格内容
       this.shadowRoot.querySelector(".table-body").classList = "table-body";
       delete this.config;
-      this.children.forEach(function(item) {
+      Array.from(this.children).forEach(function(item) {
         item.remove();
       });
     }
