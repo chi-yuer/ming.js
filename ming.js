@@ -22,7 +22,11 @@
     window.customElements.get("m-select") ||
     window.customElements.get("m-option") ||
     window.customElements.get("m-input") ||
+    window.customElements.get("m-file") ||
+    window.customElements.get("m-date") ||
+    window.customElements.get("m-color") ||
     window.customElements.get("m-switch") ||
+    window.customElements.get("m-tag") ||
     window.customElements.get("m-form-item") ||
     window.customElements.get("m-operation-list") ||
     window.customElements.get("m-operation") ||
@@ -1265,7 +1269,9 @@
       let self = this;
       let disabled = this.hasAttribute("disabled"); // 禁用状态
       // 创建shadowDOM
-      let shadow = this.attachShadow({ mode: "open" });
+      let shadow = this.attachShadow({
+        mode: "open"
+      });
       shadow.resetStyleInheritance = true; // 重置样式
       let nodeArray = Array.from(this.querySelectorAll("m-option[selected]"));
       let nodeSelected =
@@ -1921,6 +1927,162 @@
     }
   }
 
+  // m-file 定义
+  class mFile extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 组件初始化
+      let self = this;
+      let disabled = this.hasAttribute("disabled");
+      let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+      shadow.resetStyleInheritance = true; // 重置样式
+      let html = `
+        <style type="text/css">
+          :host(m-file) {
+            cursor: default;
+            display: inline-flex;
+            align-items: center;
+          }
+          :host(m-file[disabled]) {
+            cursor: not-allowed;
+          }
+          :host(m-file) div {
+            display: flex;
+            align-items: center;
+          }
+          :host(m-file) a {
+            padding: 0 8px;
+            color: var(--m-file-color, #0359ff);
+            font-size: 14px;
+            line-height: 1.5;
+            text-decoration: none;
+            border-radius: 4px;
+            border: var(--m-file-color, #0359ff) 1px solid;
+            background-color: rgba(3,89,255,.1);
+            display: inline-flex;
+            position: relative;
+          }
+          :host(m-file) a:hover {
+            color: #fff;
+            background-color: var(--m-file-color, #0359ff);
+          }
+          :host(m-file[disabled]) a {
+            color: #8f8f8f;
+            cursor: not-allowed;
+            border-color: #8f8f8f;
+            background-color: rgba(143,143,143,.1);
+          }
+          :host(m-file[disabled]) a:hover {
+            color: #8f8f8f;
+            background-color: rgba(143,143,143,.1);
+          }
+          :host(m-file) input {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            border: none;
+            background: none;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+          }
+          :host(m-file[disabled]) input {
+            cursor: not-allowed;
+          }
+          :host(m-file) .file-name {
+            height: fit-content;
+            padding: 0 5px;
+            color: #8f8f8f;
+            font-size: 14px;
+          }
+          :host(m-file) .file-name.active {
+            color: #000;
+          }
+        </style>
+        <div>
+          <a href="javascript:;">
+            选择文件
+            <input type="file" ${disabled ? "disabled" : ""}>
+          </a>
+          <span class="file-name">未选择任何文件</span>
+        </div>
+      `;
+      shadow.innerHTML = html;
+      this.shadowRoot
+        .querySelector("input")
+        .addEventListener("change", function(e) {
+          let files = Array.from(this.files);
+          if (files.length > 0) {
+            let file = files[0];
+            this.previousSibling.nodeValue = "重新选择";
+            this.parentElement.nextElementSibling.classList.add("active");
+            this.parentElement.nextElementSibling.innerText = file.name;
+          } else {
+            this.previousSibling.nodeValue = "选择文件";
+            this.parentElement.nextElementSibling.classList.remove("active");
+            this.parentElement.nextElementSibling.innerText = "未选择任何文件";
+          }
+        });
+      this.shadowRoot
+        .querySelector("span")
+        .addEventListener("click", function() {
+          this.previousElementSibling.querySelector("input").click();
+        });
+    }
+
+    set disabled(value) {
+      if (value) {
+        this.setAttribute("disabled", "");
+        this.shadowRoot.querySelector("input").setAttribute("disabled", "");
+      } else {
+        this.removeAttribute("disabled", "");
+        this.shadowRoot.querySelector("input").removeAttribute("disabled", "");
+      }
+    }
+
+    get disabled() {
+      return this.hasAttribute("disabled");
+    }
+
+    get value() {
+      let files = Array.from(this.shadowRoot.querySelector("input").files);
+      if (files.length > 0) {
+        return files[0];
+      } else {
+        return null;
+      }
+    }
+  }
+
+  // m-date 定义
+  class mDate extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 组件初始化
+    }
+  }
+
+  // m-color 定义
+  class mColor extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    initComponent() {
+      // 组件初始化
+    }
+  }
+
   // m-switch 定义
   class mSwitch extends HTMLElement {
     constructor() {
@@ -2012,7 +2174,7 @@
 
     get value() {
       return this.shadowRoot
-        .querySelector("switch")
+        .querySelector(".switch")
         .classList.contains("active");
     }
 
@@ -2022,6 +2184,137 @@
         this.setAttribute("selected", "");
       } else {
         this.shadowRoot.querySelector(".switch").classList.remove("active");
+        this.removeAttribute("selected");
+      }
+    }
+
+    get disabled() {
+      return this.hasAttribute("disabled");
+    }
+
+    set disabled(value) {
+      if (value) {
+        this.setAttribute("disabled", "");
+      } else {
+        this.removeAttribute("disabled");
+      }
+    }
+  }
+
+  // m-tag 定义
+  class mTag extends HTMLElement {
+    constructor() {
+      super();
+      this.initComponent();
+    }
+
+    connectedCallback() {
+      if (this.parentElement.nodeName == "M-FORM-ITEM") {
+        this.parentElement.noEmpty();
+      }
+    }
+
+    initComponent() {
+      // 组件初始化
+      let self = this;
+      let selected = self.hasAttribute("selected");
+      let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+      shadow.resetStyleInheritance = true; // 重置样式
+      let html = `
+        <style type="text/css">
+          :host(m-tag) {
+            width: fit-content;
+            cursor: pointer;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Chrome/Safari/Opera */
+            -khtml-user-select: none; /* Konqueror */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently not supported by any browser */
+            display: inline-flex;
+          }
+          :host(m-tag[disabled]) {
+            cursor: not-allowed;
+          }
+          :host(m-tag) .tag {
+            width: fit-content;
+            padding: 0 6px;
+            color: var(--m-tag-color, #636363);
+            font-size: var(--m-tag-font-size, 14px);
+            white-space: nowrap;
+            line-height: 1.5;
+            border-radius: 3px;
+            border: var(--m-tag-color, #636363) 1px solid;
+            background-color: #fff;
+            transition: all .2s linear;
+          }
+          :host(m-tag:not([disabled])) .tag:hover {
+            color: var(--m-tag-active-color, #0359ff);
+            border: var(--m-tag-active-color, #0359ff) 1px solid;
+          }
+          :host(m-tag:not([disabled])) .tag.active {
+            color: var(--m-tag-active-color, #0359ff);
+            border: var(--m-tag-active-color, #0359ff) 1px solid;
+            background-color: var(--m-tag-active-bg, rgba(3,99,255,.05));
+          }
+          :host(m-tag[disabled]) .tag {
+            color: var(--m-tag-disable-color, #c8c8c8);
+            border: var(--m-tag-disable-color, #c8c8c8) 1px solid;
+          }
+        </style>
+        <div class="tag${selected ? " active" : ""}">
+          <slot></slot>
+        </div>
+      `;
+      shadow.innerHTML = html;
+      self.changeEvent = document.createEvent("Event");
+      self.changeEvent.initEvent("change", false, false);
+      this.addEventListener("click", function(e) {
+        e.preventDefault();
+        self.toggleActive();
+        return false;
+      });
+    }
+
+    toggleActive() {
+      // 切换激活状态
+      if (this.disabled) {
+        return false;
+      }
+      this.shadowRoot.querySelector(".tag").classList.toggle("active");
+      if (this.shadowRoot.querySelector(".tag").classList.contains("active")) {
+        this.setAttribute("selected", "");
+      } else {
+        this.removeAttribute("selected");
+      }
+      this.changeEvent.value = this.shadowRoot
+        .querySelector(".tag")
+        .classList.contains("active");
+      this.dispatchEvent(this.changeEvent);
+    }
+
+    get indic() {
+      return this.getAttribute("indic") || false;
+    }
+
+    set indic(value) {
+      if (value) {
+        this.setAttribute("indic", value);
+      } else {
+        this.removeAttribute("indic");
+      }
+    }
+
+    get value() {
+      return this.shadowRoot.querySelector(".tag").classList.contains("active");
+    }
+
+    set value(value) {
+      if (value) {
+        this.shadowRoot.querySelector(".tag").classList.add("active");
+        this.setAttribute("selected", "");
+      } else {
+        this.shadowRoot.querySelector(".tag").classList.remove("active");
         this.removeAttribute("selected");
       }
     }
@@ -2099,8 +2392,9 @@
             display: inline-flex;
           }
           :host(m-form-item) .item {
-            width: fit-content;
+            width: 100%;
             height: fit-content;
+            min-height: 30px;
             padding-top: 20px;
             position: relative;
           }
@@ -2147,6 +2441,20 @@
           :host(m-form-item[error]) ::slotted(m-input) {
             --m-input-border-color: var(--m-error-color, #d9534f);
             --m-input-active-border-color: var(--m-error-color, #d9534f);
+          }
+          :host(m-form-item) ::slotted(m-select[type=file]) {
+            height: 30px;
+            border-bottom: 1px solid #e6e6e6;
+          }
+          :host(m-form-item) ::slotted(m-select[type=file][disabled]) {
+            border-bottom: 1px solid #f6f6f6;
+          }
+          :host(m-form-item) ::slotted(m-tag) {
+            --m-tag-font-size: 12px;
+            margin-top: 8px;
+          }
+          :host(m-form-item) ::slotted(m-tag:not(:last-of-type)) {
+            margin-right: 6px;
           }
         </style>
         <div class="item${empty ? " empty" : ""}">
@@ -2258,18 +2566,19 @@
       let operationName = operation ? operation.replace(/\((.)*\)/g, "") : "";
       if (operation) {
         try {
+          let paramStr = "";
           if (
             new RegExp(/\(/).test(operation) &&
             new RegExp(/\)/).test(operation)
           ) {
-            let paramStr = operation
-              .match(new RegExp(/\((.)*\)/))[0]
-              .replace("(", "")
-              .replace(")", "");
-            eval(`${operationName}(this, e${paramStr ? ", " + paramStr : ""})`);
-          } else {
-            eval(`${operationName}(this, e)`);
+            paramStr =
+              "," +
+              operation
+                .match(new RegExp(/\((.)*\)/))[0]
+                .replace("(", "")
+                .replace(")", "");
           }
+          eval(`${operationName}(this, e${paramStr})`);
         } catch (e) {
           let error = {
             name: "m-operation",
@@ -2330,7 +2639,9 @@
       let self = this;
       let disabled = this.hasAttribute("disabled"); // 禁用状态
       // 创建shadowDOM
-      let shadow = this.attachShadow({ mode: "open" });
+      let shadow = this.attachShadow({
+        mode: "open"
+      });
       shadow.resetStyleInheritance = true; // 重置样式
       let html = `
         <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
@@ -2661,7 +2972,9 @@
       if (!!this.shadowRoot) {
         shadow = this.shadowRoot;
       } else {
-        shadow = this.attachShadow({ mode: "open" });
+        shadow = this.attachShadow({
+          mode: "open"
+        });
         shadow.resetStyleInheritance = true; // 重置样式
       }
       let disabled = this.hasAttribute("disabled"); // 禁用状态
@@ -2766,6 +3079,7 @@
                 .replace("(", "")
                 .replace(")", "");
             }
+            eval(`${operationName}.apply(param, [${paramStr}])`);
           } catch (e) {
             let error = {
               name: "m-function",
@@ -2773,7 +3087,6 @@
             };
             mError.apply(error, [self]);
           }
-          eval(`${operationName}.apply(param, [${paramStr}])`);
         } else {
           let error = {
             name: "m-function",
@@ -2911,7 +3224,9 @@
       if (!!this.shadowRoot) {
         shadow = this.shadowRoot;
       } else {
-        shadow = this.attachShadow({ mode: "open" });
+        shadow = this.attachShadow({
+          mode: "open"
+        });
         shadow.resetStyleInheritance = true; // 重置样式
       }
       let disabled = this.hasAttribute("disabled"); // 禁用状态
@@ -3048,6 +3363,7 @@
                 .replace("(", "")
                 .replace(")", "");
             }
+            eval(`${operationName}.apply(param, [${paramStr}])`);
           } catch (e) {
             let error = {
               name: "m-icon-function",
@@ -3055,7 +3371,6 @@
             };
             mError.apply(error, [self]);
           }
-          eval(`${operationName}.apply(param, [${paramStr}])`);
         } else {
           let error = {
             name: "m-icon-function",
@@ -3390,7 +3705,9 @@
       if (this.shadowRoot) {
         shadowRoot = this.shadowRoot;
       } else {
-        shadowRoot = this.attachShadow({ mode: "open" });
+        shadowRoot = this.attachShadow({
+          mode: "open"
+        });
         shadowRoot.resetStyleInheritance = true; // 重置样式
       }
       if (disabled) {
@@ -3804,7 +4121,9 @@
       if (this.shadowRoot) {
         shadowRoot = this.shadowRoot;
       } else {
-        shadowRoot = this.attachShadow({ mode: "open" });
+        shadowRoot = this.attachShadow({
+          mode: "open"
+        });
         shadowRoot.resetStyleInheritance = true; // 重置样式
       }
       let shadowContent = `
@@ -4185,7 +4504,9 @@
       if (this.shadowRoot) {
         shadowRoot = this.shadowRoot;
       } else {
-        shadowRoot = this.attachShadow({ mode: "open" });
+        shadowRoot = this.attachShadow({
+          mode: "open"
+        });
         shadowRoot.resetStyleInheritance = true; // 重置样式
       }
       let shadowContent = `
@@ -4462,7 +4783,11 @@
   window.customElements.define("m-select", mSelect); // m-select注册
   window.customElements.define("m-option", mOption); // m-option注册
   window.customElements.define("m-input", mInput); // m-input注册
-  window.customElements.define("m-switch", mSwitch); // m-input注册
+  window.customElements.define("m-file", mFile); // m-file注册
+  window.customElements.define("m-date", mDate); // m-date注册
+  window.customElements.define("m-color", mColor); // m-date注册
+  window.customElements.define("m-switch", mSwitch); // m-switch注册
+  window.customElements.define("m-tag", mTag); // m-tag注册
   window.customElements.define("m-form-item", mFormItem); // m-form-item注册
   window.customElements.define("m-operation-list", mOperationList); // m-option注册
   window.customElements.define("m-operation", mOperation); // m-operation注册
@@ -4473,5 +4798,5 @@
   window.customElements.define("m-menu", mMenu); // m-menu 注册
   window.customElements.define("m-inner-cell", mInnerCell); // m-table 注册
   window.customElements.define("m-table", mTable); // m-table 注册
-  window.customElements.define("m-simple-table", mSimpleTable); // m-table 注册
+  window.customElements.define("m-simple-table", mSimpleTable); // m-simple-table 注册
 })();
