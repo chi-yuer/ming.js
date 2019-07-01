@@ -142,6 +142,94 @@
 
 
 
+### m-slider
+
+**Attributes**
+
+- **value:** current value of slider
+- **min:** min value of slider
+- **max:** max value of slider
+- **disabled:** whether to disable the switch
+- **show-input:** whether to show input
+
+**Styles**
+
+- **--m-slider-main-color:** main color
+- **--m-slider-auxiliary-color:** auxiliary color
+
+**Values**
+
+- **value:** set or get value of slider
+- **disabled:** set or get whether to disable the slider
+
+**Methods**
+
+- none
+
+**Events**
+
+- none
+
+
+
+### m-range-slider
+
+**Attributes**
+
+- **left:** current left value of slider
+- **right:** current right value of slider
+- **min:** min value of slider
+- **max:** max value of slider
+- **disabled:** whether to disable the switch
+- **show-input:** whether to show input
+
+**Styles**
+
+- **--m-slider-main-color:** main color
+- **--m-slider-auxiliary-color:** auxiliary color
+
+**Values**
+
+- **value:** set or get range of slider
+- **disabled:** set or get whether to disable the slider
+
+**Methods**
+
+- none
+
+**Events**
+
+- none
+
+
+
+### album
+
+**Attributes**
+
+- **autoplay:** whether to auto play album
+- **interval:** time of auto play interval, 3000ms default
+- **trigger:** way to trigger the indicator, click or hover
+- **indicator-position:** position of indicators, outside or inside
+
+**Styles**
+
+- none
+
+**Values**
+
+- none
+
+**Methods**
+
+- none
+
+**Events**
+
+- none
+
+
+
 ### m-operation-list
 
 **Attributes**
@@ -439,9 +527,58 @@
 
 **preview**
 
-![Preview of switch](E:/projects/ming.js/previews/preview_switch.png)
+![Preview of switch](./previews/preview_switch.png)
 
+### slider
 
+```html
+<m-slider min="0" max="20" value="0"></m-slider>
+<m-slider min="0" max="20" value="10"></m-slider>
+<m-slider min="0" max="20" value="10" disabled></m-slider>
+<m-slider min="0" max="20" value="10" show-input></m-slider>
+<m-slider min="0" max="20" value="10" show-input disabled></m-slider>
+```
+
+**preview**
+
+![Preview of slider](./previews/preview_slider.png)
+
+### range-slider
+
+```html
+<m-range-slider min="0" max="20" left="0" right="20"></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15"></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" disabled></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" show-input></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" show-input disabled></m-range-slider>
+```
+
+**preview**
+
+![Preview of range-slider](./previews/preview_range_slider.png)
+
+### album
+
+```html
+<m-album>
+    <m-album-item>
+        <h3>1</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>2</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>3</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>4</h3>
+    </m-album-item>
+</m-album>
+```
+
+**预览**
+
+![Preview of album](./previews/preview_album.png)
 
 ### operation-list
 

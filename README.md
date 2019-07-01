@@ -142,6 +142,94 @@
 
 
 
+### m-slider
+
+**属性**
+
+- **value:** 当前状态
+- **min:** 滑轨的最小值
+- **max:** 滑轨的最大值
+- **disabled:** 是否禁用滑钮
+- **show-input:** 是否显示输入框
+
+**样式**
+
+- **--m-slider-main-color:** 主要色
+- **--m-slider-auxiliary-color:** 次要色
+
+**值**
+
+- **value：** 设置或获取当前值
+- **disabled：** 设置或获取是否禁用组件
+
+**方法**
+
+- 无
+
+**事件**
+
+- 无
+
+
+
+### m-range-slider
+
+**属性**
+
+- **left:** 当前的左区间
+- **right:** 当前的右区间
+- **min:** 滑轨的最小值
+- **max:** 滑轨的最大值
+- **disabled:** 是否禁用滑钮
+- **show-input:** 是否显示输入框
+
+**样式**
+
+- **--m-slider-main-color:** 主要色
+- **--m-slider-auxiliary-color:** 次要色
+
+**值**
+
+- **value：** 设置或获取当前值
+- **disabled：** 设置或获取是否禁用组件
+
+**方法**
+
+- 无
+
+**事件**
+
+- 无
+
+
+
+### m-album
+
+**属性**
+
+- **autoplay:** 是否自动播放
+- **interval:** 自动播放的间隔时间，默认为 3000ms
+- **trigger:** 指示器的触发方式，click 或 hover
+- **indicator-position:** 指示器的位置，outside 或 inside
+
+**样式**
+
+- 无
+
+**值**
+
+- 无
+
+**方法**
+
+- 无
+
+**事件**
+
+- 无
+
+
+
 ### m-operation-list
 
 **属性**
@@ -439,7 +527,56 @@
 
 ![switch 的预览图](./previews/preview_switch.png)
 
+### slider
 
+```html
+<m-slider min="0" max="20" value="0"></m-slider>
+<m-slider min="0" max="20" value="10"></m-slider>
+<m-slider min="0" max="20" value="10" disabled></m-slider>
+<m-slider min="0" max="20" value="10" show-input></m-slider>
+<m-slider min="0" max="20" value="10" show-input disabled></m-slider>
+```
+
+**预览**
+
+![Slider 的预览图](./previews/preview_slider.png)
+
+### range-slider
+
+```html
+<m-range-slider min="0" max="20" left="0" right="20"></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15"></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" disabled></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" show-input></m-range-slider>
+<m-range-slider min="0" max="20" left="8" right="15" show-input disabled></m-range-slider>
+```
+
+**预览**
+
+![Range-slider 的预览图](./previews/preview_range_slider.png)
+
+### album
+
+```html
+<m-album>
+    <m-album-item>
+        <h3>1</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>2</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>3</h3>
+    </m-album-item>
+    <m-album-item>
+        <h3>4</h3>
+    </m-album-item>
+</m-album>
+```
+
+**预览**
+
+![Album 的预览图](./previews/preview_zh_album.png)
 
 ### operation-list
 

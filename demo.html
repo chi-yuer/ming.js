@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ming.js Demo</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.webfont.youziku.com/webfonts/nomal/19395/28831/5d143341f629d80608ea4370.css">
+    <link rel="stylesheet" type="text/css" href="//cdn.webfont.youziku.com/webfonts/nomal/19395/46749/5d1436c5f629d80608ea4373.css">
+    <style type="text/css">
+        body {
+            padding: 100px 0;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+        
+        .title {
+            max-width: 1000px;
+            padding: 0;
+            font-family: "Agnes-Bold";
+            text-align: center;
+            background-image: linear-gradient(90deg, #00D2FF 0%, #3A7BD5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 auto;
+        }
+        
+        body>div {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        body>div>h2 {
+            padding: 55px 0 12px;
+            color: #1f2f3d;
+            font-size: 22px;
+            font-weight: 400;
+            font-family: "SegoeWP";
+            line-height: 1;
+            margin: 0;
+        }
+        
+        body>div>p {
+            color: #5e6d82;
+            font-size: 14px;
+            line-height: 1.5em;
+            margin: 0;
+        }
+        
+        body>div>div {
+            width: 100%;
+            padding: 30px 24px;
+            box-sizing: border-box;
+            border: 1px solid #eff2f6;
+            margin-top: 30px;
+        }
+        
+        body>div>div.block-content>*:not(:first-child) {
+            margin-top: 20px;
+        }
+        
+        m-album {
+            --m-album-height: 280px;
+        }
+        
+        m-album-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        m-album-item:nth-of-type(odd) {
+            background-color: #99a9bf;
+        }
+        
+        m-album-item:nth-of-type(even) {
+            background-color: #d3dce6;
+        }
+        
+        m-album-item h3 {
+            color: #fff;
+            font-weight: normal;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="title">Ming.js UI Demo</h1>
+    <div>
+        <h2>m-select</h2>
+        <p>下拉框组件</p>
+        <div>
+            <m-select>
+                <m-option value="1">可用选项 1</m-option>
+                <m-option value="2">可用选项 2</m-option>
+                <m-option value="3">可用选项 3</m-option>
+                <m-option value="4" selected>选中选项 4</m-option>
+                <m-option value="5" disabled>禁用选项 5</m-option>
+                <m-option value="6">可用选项 6</m-option>
+                <m-option value="7">可用选项 7</m-option>
+                <m-option value="8">可用选项 8</m-option>
+            </m-select>
+            <m-select disabled>
+                <m-option value="0">禁用的下拉框</m-option>
+            </m-select>
+        </div>
+    </div>
+    <div>
+        <h2>m-input</h2>
+        <p>普通输入框组件</p>
+        <div>
+            <m-input type="text"></m-input>
+            <m-input type="text" value="文字内容"></m-input>
+            <m-input type="text" value="禁用输入框" disabled></m-input>
+        </div>
+    </div>
+    <div>
+        <h2>m-form-item</h2>
+        <p>表单项组件</p>
+        <div>
+            <m-form-item name="禁用的表单">
+                <m-input type="text" disabled></m-input>
+            </m-form-item>
+            <m-form-item name="提示文字">
+                <m-input type="text"></m-input>
+            </m-form-item>
+            <m-form-item name="提示文字">
+                <m-input type="text" value="输入框文字"></m-input>
+            </m-form-item>
+        </div>
+    </div>
+    <div>
+        <h2>m-switch</h2>
+        <p>状态切换组件</p>
+        <div>
+            <m-switch></m-switch>
+            <m-switch selected></m-switch>
+            <m-switch disabled></m-switch>
+        </div>
+    </div>
+    <div>
+        <h2>m-tag</h2>
+        <p>状态切换组件</p>
+        <div>
+            <m-tag>未选中的标签</m-tag>
+            <m-tag selected>选中的标签</m-tag>
+        </div>
+    </div>
+    <div>
+        <h2>m-album</h2>
+        <p>相册组件</p>
+        <div class="block-content">
+            <m-album>
+                <m-album-item>
+                    <h3>自动播放 1</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>自动播放 2</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>自动播放 3</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>自动播放 4</h3>
+                </m-album-item>
+            </m-album>
+            <m-album autoplay="false">
+                <m-album-item>
+                    <h3>手动播放 1</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>手动播放 2</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>手动播放 3</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>手动播放 4</h3>
+                </m-album-item>
+            </m-album>
+            <m-album autoplay="false" indicator-position="outside">
+                <m-album-item>
+                    <h3>外部指示器 1</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>外部指示器 2</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>外部指示器 3</h3>
+                </m-album-item>
+                <m-album-item>
+                    <h3>外部指示器 4</h3>
+                </m-album-item>
+            </m-album>
+        </div>
+    </div>
+    <div>
+        <h2>m-slider</h2>
+        <p>单数值滑轨组件</p>
+        <div class="block-content">
+            <m-slider min="0" max="20" value="0"></m-slider>
+            <m-slider min="0" max="20" value="10"></m-slider>
+            <m-slider min="0" max="20" value="10" disabled></m-slider>
+            <m-slider min="0" max="20" value="10" show-input></m-slider>
+            <m-slider min="0" max="20" value="10" show-input disabled></m-slider>
+        </div>
+    </div>
+    <div>
+        <h2>m-range-slider</h2>
+        <p>带值域选取的滑轨组件</p>
+        <div class="block-content">
+            <m-range-slider min="0" max="20" left="0" right="20"></m-range-slider>
+            <m-range-slider min="0" max="20" left="8" right="15"></m-range-slider>
+            <m-range-slider min="0" max="20" left="8" right="15" disabled></m-range-slider>
+            <m-range-slider min="0" max="20" left="8" right="15" show-input></m-range-slider>
+            <m-range-slider min="0" max="20" left="8" right="15" show-input disabled></m-range-slider>
+        </div>
+    </div>
+    <div>
+        <h2>m-operation-list</h2>
+        <p>操作选项集组件</p>
+        <div class="block-content">
+            <m-operation-list>
+                <m-operation>可用操作 1</m-operation>
+                <m-operation disabled>禁用操作 2</m-operation>
+                <m-operation>可用操作 3</m-operation>
+                <m-operation>可用操作 4</m-operation>
+            </m-operation-list>
+            <m-operation-list disabled></m-operation-list>
+        </div>
+    </div>
+    <div>
+        <h2>m-function</h2>
+        <p>单按钮组件</p>
+        <div class="block-content">
+            <m-function icon-class="ming-icon-plus" tip="上传图片" disabled></m-function>
+            <m-function icon-class="ming-icon-plus" tip="上传图片"></m-function>
+        </div>
+    </div>
+    <div>
+        <h2>m-icon-function</h2>
+        <p>图标单按钮组件</p>
+        <div class="block-content">
+            <m-icon-function icon-class="ming-icon-home" tip="主页" operation="helloWorld" disabled></m-icon-function>
+            <m-icon-function icon-class="ming-icon-home" tip="主页" operation="helloWorld"></m-icon-function>
+        </div>
+    </div>
+    <div>
+        <h2>m-menu</h2>
+        <p>纵向菜单组组件</p>
+        <div class="block-content">
+            <m-menu menu-target="main-content">
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 1">
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 2">
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 3</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 4</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 3">
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 4" menu-route=""></m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 5">
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 6">
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 3</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="禁用的一级菜单" disabled>
+                    <m-menu-item menu-route="">二级菜单 1</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                </m-menu-group>
+                <m-menu-group icon="ming-icon-settings" group-name="一级菜单 8">
+                    <m-menu-item menu-route="" disabled>禁用的二级菜单</m-menu-item>
+                    <m-menu-item menu-route="">二级菜单 2</m-menu-item>
+                </m-menu-group>
+            </m-menu>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="./ming.js"></script>
+</body>
+
+</html>
