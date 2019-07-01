@@ -1169,7 +1169,7 @@
                 this.parentElement.resetSelect();
             }
             this.style.cssText = "width: intrinsic; width: -moz-max-content; width: -webkit-max-content; padding: 0 !important; display: table-cell;";
-            let optionWidth = this.clientWidth;
+            let optionWidth = this.scrollWidth;
             this.style.cssText = "";
             this.parentNode.calcLabelSize(optionWidth); // 计算label的尺寸
         }
@@ -1319,7 +1319,6 @@
                         line-height: 1;
                     }
                     :host(m-select) .m-select span {
-                        max-width: calc(100% - 24px);
                         white-space: nowrap;
                         text-overflow: ellipsis;
                         overflow: hidden;
@@ -1418,6 +1417,10 @@
                         position: absolute;
                         top: -7px;
                         left: 40px;
+                    }
+                    :host(m-select) .m-select-option.right .arrow {
+                        left: auto;
+                        right: 40px;
                     }
                     :host(m-select) .m-select-option.active .arrow,
                     :host(m-select) .m-select-option.active .arrow::after {
@@ -1655,7 +1658,6 @@
                 self.operationWidth = 0;
             }
             self.optionWidth = Math.max(self.optionWidth, optionWidth);
-            console.log(optionWidth);
             if (selectStyle.getPropertyValue("--m-select-width") == "") {
                 this.shadowRoot.querySelector(".m-select").style.width =
                     self.optionWidth + 32 + "px";
@@ -1700,10 +1702,12 @@
                 this.shadowRoot.querySelector(".m-select-option").style.left = null;
                 this.shadowRoot.querySelector(".m-select-option").style.right =
                     position.right + "px";
+                this.shadowRoot.querySelector(".m-select-option").classList.add("right");
             } else {
                 this.shadowRoot.querySelector(".m-select-option").style.right = null;
                 this.shadowRoot.querySelector(".m-select-option").style.left =
                     position.left + "px";
+                this.shadowRoot.querySelector(".m-select-option").classList.remove("right");
             }
             self.listHeight = this.shadowRoot.querySelector(
                 ".option-list > div"
@@ -4041,7 +4045,7 @@
 
         connectedCallback() {
             this.style.cssText = "width: intrinsic; width: -moz-max-content; width: -webkit-max-content; padding: 0 !important; display: table-cell;";
-            let operationWidth = this.clientWidth;
+            let operationWidth = this.scrollWidth;
             this.style.cssText = "";
             this.parentElement.calcLabelSize(operationWidth); // 计算label的尺寸
         }
@@ -4143,7 +4147,7 @@
                     }
                     :host(m-operation-list) .m-operation-list .operation-list {
                         width: 100%;
-                        height: fit-content;
+                        height: 0;
                         padding: 0;
                         list-style: none;
                         overflow: hidden;
@@ -4196,6 +4200,10 @@
                         position: absolute;
                         top: -7px;
                         left: 40px;
+                    }
+                    :host(m-operation-list) .m-operation-list.right .arrow {
+                        left: auto;
+                        right: 40px;
                     }
                     :host(m-operation-list) .m-operation-list.active .arrow,
                     :host(m-operation-list) .m-operation-list.active .arrow::after {
@@ -4380,10 +4388,12 @@
                 this.shadowRoot.querySelector(".m-operation-list").style.left = null;
                 this.shadowRoot.querySelector(".m-operation-list").style.right =
                     position.right + "px";
+                this.shadowRoot.querySelector(".m-operation-list").classList.add("right");
             } else {
                 this.shadowRoot.querySelector(".m-operation-list").style.right = null;
                 this.shadowRoot.querySelector(".m-operation-list").style.left =
                     position.left + "px";
+                this.shadowRoot.querySelector(".m-operation-list").classList.remove("right");
             }
             self.listHeight = this.shadowRoot.querySelector(
                 ".operation-list > div"

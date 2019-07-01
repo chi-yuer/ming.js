@@ -413,7 +413,6 @@ m-select .m-select i {
 }
 
 m-select .m-select span {
-    max-width: calc(100% - 24px);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -525,6 +524,11 @@ m-select .m-select-option .arrow::after {
     position: absolute;
     top: -7px;
     left: 40px;
+}
+
+m-select .m-select-option.right .arrow {
+    left: auto;
+    right: 40px;
 }
 
 m-select .m-select-option.active .arrow,
@@ -1502,7 +1506,7 @@ m-operation-list .m-operation-list.active {
 
 m-operation-list .m-operation-list .operation-list {
     width: 100%;
-    height: fit-content;
+    height: 0;
     padding: 0;
     list-style: none;
     overflow: hidden;
@@ -1561,6 +1565,11 @@ m-operation-list .m-operation-list .arrow::after {
     position: absolute;
     top: -7px;
     left: 40px;
+}
+
+m-operation-list .m-operation-list.right .arrow {
+    left: auto;
+    right: 40px;
 }
 
 m-operation-list .m-operation-list.active .arrow,
