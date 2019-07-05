@@ -1331,6 +1331,7 @@
                         transform: rotateX(180deg);
                     }
                     :host(m-select) .m-select-option {
+                        width: -moz-fit-content;
                         width: fit-content;
                         max-width: 240px;
                         height: fit-content;
@@ -1350,7 +1351,7 @@
                         list-style: none;
                         overflow: hidden;
                         border-radius: 4px;
-                        background-color: #fff;
+                        background: #fff;
                         box-sizing: border-box;
                         transition: height .3s ease, padding .2s linear;
                         position: relative;
@@ -1371,14 +1372,14 @@
                         height: 0;
                         cursor: pointer;
                         border-radius: 3px;
-                        background-color: rgba(144,147,153,.3);
+                        background: rgba(144,147,153,.3);
                         position: absolute;
                         top: 0;
                         right: 2px;
                         margin-top: 8px;
                     }
                     :host(m-select) .m-select-option .option-list .scroll-bar:hover {
-                        background-color: rgba(144,147,153,.5);
+                        background: rgba(144,147,153,.5);
                     }
                     :host(m-select) .m-select-option ::slotted(m-option) {
                         width: 100%;
@@ -1395,7 +1396,7 @@
                     :host(m-select) .m-select-option ::slotted(m-option:hover),
                     :host(m-select) .m-select-option ::slotted(m-option[selected]) {
                         color: var(--m-option-active-color, #0359ff);
-                        background-color: var(--m-option-active-bg, #f3f3f3);
+                        background: var(--m-option-active-bg, #f3f3f3);
                     }
                     :host(m-select) .m-select-option ::slotted(m-option[disabled]),
                     :host(m-select) .m-select-option ::slotted(m-option[disabled]:hover) {
@@ -1815,7 +1816,7 @@
                         content: "";
                         width: 0;
                         height: 1px;
-                        background-color: var(--m-input-active-border-color, #0359ff);
+                        background: var(--m-input-active-border-color, #0359ff);
                         transition: width .3s linear;
                         position: absolute;
                         bottom: 0;
@@ -1963,10 +1964,10 @@
             return this.hasAttribute("disabled");
         }
 
-        set disable(value) {
+        set disabled(value) {
             if (value) {
                 this.setAttribute("disabled", "");
-                this.shadowRoot.querySelector("input").setAttribute("disabled");
+                this.shadowRoot.querySelector("input").setAttribute("disabled", "");
             } else {
                 this.removeAttribute("disabled");
                 this.shadowRoot.querySelector("input").removeAttribute("disabled");
@@ -2040,23 +2041,23 @@
                         text-decoration: none;
                         border-radius: 4px;
                         border: var(--m-file-color, #0359ff) 1px solid;
-                        background-color: rgba(3,89,255,.1);
+                        background: rgba(3,89,255,.1);
                         display: inline-flex;
                         position: relative;
                     }
                     :host(m-file) a:hover {
                         color: #fff;
-                        background-color: var(--m-file-color, #0359ff);
+                        background: var(--m-file-color, #0359ff);
                     }
                     :host(m-file[disabled]) a {
                         color: #8f8f8f;
                         cursor: not-allowed;
                         border-color: #8f8f8f;
-                        background-color: rgba(143,143,143,.1);
+                        background: rgba(143,143,143,.1);
                     }
                     :host(m-file[disabled]) a:hover {
                         color: #8f8f8f;
-                        background-color: rgba(143,143,143,.1);
+                        background: rgba(143,143,143,.1);
                     }
                     :host(m-file) input {
                         width: 100%;
@@ -2178,6 +2179,7 @@
             let html = /*html*/ `
                 <style type="text/css">
                     :host(m-switch) {
+                        width: -moz-fit-content;
                         width: fit-content;
                         cursor: pointer;
                         display: inline-flex;
@@ -2191,20 +2193,20 @@
                         border-radius: 14px;
                         box-sizing: border-box;
                         box-shadow: rgba(0,0,0,.1) 0 0 10px inset;
-                        background-color: #f9f9f9;
+                        background: #f9f9f9;
                         transition: background .3s linear;
                     }
                     :host(m-switch) .switch.active {
-                        background-color: #75d991;
+                        background: #75d991;
                     }
                     :host(m-switch[disabled]) .switch {
-                        background-color: #dfdfdf;
+                        background: #dfdfdf;
                     }
                     :host(m-switch) .switch .switch-label {
                         width: 22px;
                         height: 22px;
                         border-radius: 11px;
-                        background-color: #fff;
+                        background: #fff;
                         box-shadow: rgba(0,0,0,.1) 0 0 3px;
                         transition: margin .3s ease-out;
                         margin: 3px 0 0 3px;
@@ -2213,7 +2215,7 @@
                         margin: 3px 0 0 25px;
                     }
                     :host(m-switch[disabled]) .switch .switch-label {
-                        background-color: #f6f6f6;
+                        background: #f6f6f6;
                         margin: 3px 0 0 3px;
                     }
                 </style>
@@ -2300,10 +2302,11 @@
             if (step == 0) step = 1;
             if ((max - min) % step != 0) max = min + Math.ceil((max - min) / step) * step;
             self.current = value;
-            self.min = min;
-            self.max = max;
-            self.step = step;
+            self.minValue = min;
+            self.maxValue = max;
+            self.stepValue = step;
             self.active = 0;
+            let size = self.getAttribute("size"); // 获取尺寸大小
             let disabled = self.hasAttribute("disabled"); // 是否禁用组件
             let showInput = self.hasAttribute("show-input"); // 是否显示输入框
             let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
@@ -2314,7 +2317,7 @@
                     :host(m-slider) {
                         max-width: 1900px;
                         min-height: 38px;
-                        padding: 4px 20px;
+                        padding: 4px 15px;
                         box-sizing: border-box;
                         display: flex;
                         justify-content: space-between;
@@ -2329,9 +2332,15 @@
                         position: relative;
                         margin: 0 auto;
                     }
+                    :host(m-slider) .slider.min {
+                        padding: 13px 0;
+                    }
                     :host(m-slider) .slider.more {
                         width: calc(100% - 160px);
                         margin: 0;
+                    }
+                    :host(m-slider) .slider.min.more {
+                        width: calc(100% - 120px);
                     }
                     :host(m-slider) .slider .controller {
                         width: 20px;
@@ -2340,7 +2349,7 @@
                         border: solid 2px #0359ff;
                         border-color: var(--m-slider-main-color, #0359ff);
                         border-radius: 10px;
-                        background-color: var(--m-slider-auxiliary-color, #fff);
+                        background: var(--m-slider-auxiliary-color, #fff);
                         -webkit-user-select: none;
                         -khtml-user-select: none;
                         -moz-user-select: none;
@@ -2352,6 +2361,13 @@
                         left: 0;
                         z-index: 99;
                         margin-left: -10px;
+                    }
+                    :host(m-slider) .slider.min .controller {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 8px;
+                        top: 7px;
+                        margin-left: -8px;
                     }
                     :host(m-slider[disabled]) .slider .controller {
                         cursor: not-allowed;
@@ -2382,7 +2398,7 @@
                         font-size: 12px;
                         line-height: 1;
                         border-radius: 4px;
-                        background-color: #303133;
+                        background: #303133;
                     }
                     :host(m-slider) .slider .indicator .arrow {
                         border-left: 5px solid transparent;
@@ -2400,10 +2416,13 @@
                         height: 6px;
                         cursor: pointer;
                         border-radius: 3px;
-                        background-color: #e4e7ed;
+                        background: #e4e7ed;
                         overflow: hidden;
                         position: relative;
                         margin: 0 auto;
+                    }
+                    :host(m-slider) .slider.min .track {
+                        height: 4px;
                     }
                     :host(m-slider[disabled]) .slider .track {
                         cursor: not-allowed;
@@ -2411,10 +2430,13 @@
                     :host(m-slider) .slider .track .progress {
                         width: 0;
                         height: 6px;
-                        background-color: var(--m-slider-main-color, #0359ff);
+                        background: var(--m-slider-main-color, #0359ff);
+                    }
+                    :host(m-slider) .slider.min .track .progress {
+                        height: 4px;
                     }
                     :host(m-slider[disabled]) .slider .track .progress {
-                        background-color: #c0c4cc;
+                        background: #c0c4cc;
                     }
                     :host(m-slider) .slider-input {
                         height: 30px;
@@ -2424,6 +2446,9 @@
                         overflow: hidden;
                         display: flex;
                         transition: border .3s linear;
+                    }
+                    :host(m-slider) .slider-input.min {
+                        height: 20px;
                     }
                     :host(m-slider) .slider-input:hover {
                         border-color: #bcc1cd;
@@ -2446,7 +2471,12 @@
                         border: none;
                         outline: none;
                         background: none;
-                        background-color: #eaeef4;
+                        background: #eaeef4;
+                    }
+                    :host(m-slider) .slider-input.min button {
+                        width: 20px;
+                        height: 20px;
+                        line-height: 20px;
                     }
                     :host(m-slider) .slider-input button:hover {
                         color: var(--m-slider-main-color, #0359ff);
@@ -2469,19 +2499,25 @@
                         border: none;
                         border-left: 1px solid #dcdfe6;
                         border-right: 1px solid #dcdfe6;
-                        background-color: var(--m-slider-auxiliary-color, #fff);
+                        background: var(--m-slider-auxiliary-color, #fff);
                         outline: none;
                         display: block;
                         box-sizing: border-box;
+                    }
+                    :host(m-slider) .slider-input.min input {
+                        width: 50px;
+                        height: 20px;
+                        padding: 0 5px;
+                        line-height: 20px;
                     }
                     :host(m-slider[disabled]) .slider-input button,
                     :host(m-slider[disabled]) .slider-input input {
                         color: #c0c4cc;
                         cursor: not-allowed;
-                        background-color: #f5f7fa;
+                        background: #f5f7fa;
                     }
                 </style>
-                <div class="slider${showInput ? " more" : ""}">
+                <div class="slider${showInput ? " more" : ""}${size ? " " + size : ""}">
                     <div class="controller">
                         <div class="indicator">
                             <span class="current">${value}</span>
@@ -2492,9 +2528,9 @@
                         <div class="progress"></div>
                     </div>
                 </div>
-                <div class="slider-input${showInput ? "" : " hidden"}">
+                <div class="slider-input${showInput ? "" : " hidden"}${size ? " " + size : ""}">
                     <button class="less"${min >= value || disabled ? " disabled" : ""}>-</button>
-                    <input type="text" value="${value}"${disabled ? " disabled" : ""}>
+                    <input type="text" title="${value}" value="${value}"${disabled ? " disabled" : ""}>
                     <button class="more"${max <= value || disabled ? " disabled" : ""}>+</button>
                 </div>
             `;
@@ -2531,7 +2567,7 @@
                     return false;
                 }
                 let tempStep = self.active + 1; // 增加后的激活段数
-                if (tempStep * self.step + self.min > self.max) { // 超过了最大值
+                if (tempStep * self.stepValue + self.minValue > self.maxValue) { // 超过了最大值
                     return false;
                 }
                 self.active += 1;
@@ -2579,29 +2615,36 @@
                 self.startX = e.screenX; // 记录开始拖拽的鼠标位置
             });
             // 滑块容器 mousemove 事件
-            self.shadowRoot.querySelector(".slider").addEventListener("mousemove", function(e) {
+            // self.shadowRoot.querySelector(".slider").addEventListener("mousemove", function(e) {
+            window.addEventListener("mousemove", function(e) {
                 if (self.disabled) { // 组件被禁用
                     return false;
                 }
-                if (!self.drag) {
+                if (!self.drag) { // 尚未拖拽
                     return false;
                 }
                 let diff = e.screenX - self.startX; // 拖拽距离
-                let totalDiff = self.max - self.min; // 值域范围
-                let totalLen = this.querySelector(".track").offsetWidth; // slider 总长度
-                let stepTotalCount = totalDiff / self.step; // 分段数
+                let totalDiff = self.maxValue - self.minValue; // 值域范围
+                let totalLen = self.shadowRoot.querySelector(".slider .track").offsetWidth; // slider 总长度
+                let stepTotalCount = totalDiff / self.stepValue; // 分段数
                 let stepLen = Math.floor(totalLen / stepTotalCount); // 步长对应像素长度
                 if (diff % stepLen <= stepLen * 0.2 || diff % stepLen >= stepLen * 0.8) {
-                    let stepCount = Math.round(diff / stepLen); // 当前变化段数
+                    let stepCount = Math.round(diff / totalLen * stepTotalCount); // 当前变化段数
                     let realStepCount = self.active + stepCount; // 计算目前激活段数
+                    if (realStepCount < 0) realStepCount = 0; // 设置最小值
+                    if (realStepCount > stepTotalCount) realStepCount = stepTotalCount; // 设置最大值
                     self.currentActive = realStepCount; // 记录
                     self.calibrationSlider(); // 校准 slider 的数据
                 }
             });
             // 滑块容器 mouseup 事件
-            self.addEventListener("mouseup", function(e) {
+            window.addEventListener("mouseup", function(e) {
+                if (!self.drag) { // 尚未启用拖拽
+                    return false;
+                }
                 self.active = self.currentActive || 0; // 获取当前激活段数
                 self.drag = false; // 拖拽停止
+                self.shadowRoot.querySelector(".slider .controller").classList.remove("active"); // 隐藏滑块数字
             });
             // 滑轨 click 事件
             self.shadowRoot.querySelector(".slider .track").addEventListener("click", function(e) {
@@ -2610,7 +2653,7 @@
                 }
                 let left = e.offsetX; // 偏移值
                 let totalWidth = this.offsetWidth; // 滑轨总长度
-                let stepCount = Math.round((self.max - self.min) / self.step); // 总阶段数
+                let stepCount = Math.round((self.maxValue - self.minValue) / self.stepValue); // 总阶段数
                 let stepWidth = parseInt(totalWidth / stepCount); // 单阶段的宽度
                 let tempStep = Math.round(left / stepWidth); // 计算激活阶段
                 self.active = tempStep;
@@ -2619,8 +2662,11 @@
             });
             // 组件 mouseleave 事件
             self.addEventListener("mouseleave", function(e) {
-                self.active = self.currentActive || 0; // 获取当前激活段数
-                self.drag = false; // 拖拽停止
+                if (self.drag) { // 开启拖拽
+                    return false;
+                }
+                // self.active = self.currentActive || 0; // 获取当前激活段数
+                // self.drag = false; // 拖拽停止
                 this.shadowRoot.querySelector(".slider .controller").classList.remove("active"); // 隐藏滑块数字
             });
         }
@@ -2647,11 +2693,11 @@
             let self = this;
             let tempValue = new Number(self.shadowRoot.querySelector(".slider-input input").value.replace(/[^0-9\.\+-]/g, "") || 0); // 获取输入框的值
             // 阈值判定
-            if (tempValue < self.min) tempValue = self.min;
-            if (tempValue > self.max) tempValue = self.max;
+            if (tempValue < self.minValue) tempValue = self.minValue;
+            if (tempValue > self.maxValue) tempValue = self.maxValue;
             // 阶层校准
-            let diff = tempValue - self.min;
-            let tempStep = Math.round(diff / self.step);
+            let diff = tempValue - self.minValue;
+            let tempStep = Math.round(diff / self.stepValue);
             self.active = tempStep;
             self.currentActive = self.active;
             self.calibrationSlider(); // 矫正数据
@@ -2660,17 +2706,20 @@
         calibrationSlider() {
             // 校准组件数据
             let self = this;
-            let totalDiff = self.max - self.min; // 值域范围
-            let stepTotalCount = totalDiff / self.step; // 分段数
+            let totalDiff = self.maxValue - self.minValue; // 值域范围
+            let stepTotalCount = totalDiff / self.stepValue; // 分段数
+            // 校验步阶的合法性
+            if (self.currentActive < 0) self.currentActive = 0;
+            if (self.currentActive > stepTotalCount) self.currentActive = stepTotalCount;
             let stepPercent = Math.floor(100 / stepTotalCount); // 步长对应百分比
-            let percent = stepPercent * self.currentActive; // 计算百分比
-            let realValue = self.min + self.step * self.currentActive; // 当前的值
-            if (realValue > self.min) { // 更新 - 按钮的状态
+            let percent = (self.currentActive / stepTotalCount * 100).toFixed(2); // 计算百分比
+            let realValue = self.minValue + self.stepValue * self.currentActive; // 当前的值
+            if (realValue > self.minValue) { // 更新 - 按钮的状态
                 self.shadowRoot.querySelector(".slider-input .less").removeAttribute("disabled");
             } else {
                 self.shadowRoot.querySelector(".slider-input .less").setAttribute("disabled", "");
             }
-            if (realValue < self.max) { // 更新 + 按钮的状态
+            if (realValue < self.maxValue) { // 更新 + 按钮的状态
                 self.shadowRoot.querySelector(".slider-input .more").removeAttribute("disabled");
             } else {
                 self.shadowRoot.querySelector(".slider-input .more").setAttribute("disabled", "");
@@ -2678,6 +2727,7 @@
             self.shadowRoot.querySelector(".slider .controller").style.left = percent + "%";
             self.shadowRoot.querySelector(".slider .controller .current").innerText = realValue;
             self.shadowRoot.querySelector(".slider-input input").value = realValue;
+            self.shadowRoot.querySelector(".slider-input input").setAttribute("title", realValue);
             self.shadowRoot.querySelector(".slider .track .progress").style.width = percent + "%";
             self.calibrationTip(); // 校准 tip 位置
         }
@@ -2704,20 +2754,74 @@
         get value() {
             // 获取当前值
             let self = this;
-            return self.min + self.active * self.step;
+            return self.minValue + self.active * self.stepValue;
         }
 
         set value(value) {
             // 设置当前值
             let self = this;
             // 阈值判定
-            if (value < self.min) value = self.min;
-            if (value > self.max) value = self.max;
+            if (value < self.minValue) value = self.minValue;
+            if (value > self.maxValue) value = self.maxValue;
             // 阶层校准
-            let diff = value - self.min;
+            let diff = value - self.minValue;
             let tempStep = Math.round(diff / self.step);
             self.active = tempStep;
             self.currentActive = self.active;
+            self.calibrationSlider(); // 矫正数据
+        }
+
+        get min() {
+            // 获取最小值
+            let self = this;
+            return self.minValue;
+        }
+
+        set min(value) {
+            // 设置最小区间
+            let self = this;
+            let min = new Number(value) || 0; // 值域最小值
+            if (min > self.maxValue - self.stepValue) { // 判断最小值是否合法
+                return false;
+            }
+            self.minValue = min; // 设置最小值
+            self.calibrationSlider(); // 矫正数据
+        }
+
+        get max() {
+            // 获取最大值
+            let self = this;
+            return self.maxValue;
+        }
+
+        set max(value) {
+            // 设置最大值
+            let self = this;
+            let max = new Number(value) || 0; // 值域最大值
+            if (max < self.minValue + self.stepValue) { // 判断最大值是否合法
+                return false;
+            }
+            self.maxValue = max; // 设置最大值
+            self.calibrationSlider(); // 矫正数据
+        }
+
+        get step() {
+            // 获取步长
+            let self = this;
+            return self.stepValue;
+        }
+
+        set step(value) {
+            // 设置步长
+            let self = this;
+            let step = new Number(value) || 0; // 步长
+            if (step > self.maxValue - self.minValue) { // 判断步长是否合法
+                return false;
+            }
+            if (step == 0) step = 1;
+            if ((self.maxValue - self.minValue) % step != 0)
+                self.maxValue = self.minValue + Math.ceil((self.maxValue - self.minValue) / step) * step;
+            self.stepValue = step; // 设置步长
             self.calibrationSlider(); // 矫正数据
         }
     }
@@ -2746,11 +2850,12 @@
             if (right <= left) right = left + step;
             self.left = left;
             self.right = right;
-            self.min = min;
-            self.max = max;
-            self.step = step;
+            self.minValue = min;
+            self.maxValue = max;
+            self.stepValue = step;
             self.leftActive = 0;
             self.rightActive = 0;
+            let size = self.getAttribute("size"); // 尺寸大小
             let disabled = self.hasAttribute("disabled"); // 是否禁用组件
             let showInput = self.hasAttribute("show-input"); // 是否显示输入框
             let shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
@@ -2759,9 +2864,9 @@
             let html = /*html*/ `
                 <style type="text/css">
                     :host(m-range-slider) {
-                        max-width: 1900px;
+                        max-width: 1200px;
                         min-height: 38px;
-                        padding: 4px 20px;
+                        padding: 4px 15px;
                         box-sizing: border-box;
                         display: flex;
                         justify-content: space-between;
@@ -2776,9 +2881,15 @@
                         position: relative;
                         margin: 0 auto;
                     }
+                    :host(m-range-slider) .slider.min {
+                        padding: 13px 0;
+                    } 
                     :host(m-range-slider) .slider.more {
                         width: calc(100% - 320px);
                         margin: 0;
+                    }
+                    :host(m-range-slider) .slider.min.more {
+                        width: calc(100% - 220px);
                     }
                     :host(m-range-slider) .slider .controller {
                         width: 20px;
@@ -2787,7 +2898,7 @@
                         border: solid 2px #0359ff;
                         border-color: var(--m-slider-main-color, #0359ff);
                         border-radius: 10px;
-                        background-color: var(--m-slider-auxiliary-color, #fff);
+                        background: var(--m-slider-auxiliary-color, #fff);
                         -webkit-user-select: none;
                         -khtml-user-select: none;
                         -moz-user-select: none;
@@ -2799,6 +2910,13 @@
                         left: 0;
                         z-index: 99;
                         margin-left: -10px;
+                    }
+                    :host(m-range-slider) .slider.min .controller {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 8px;
+                        top: 7px;
+                        margin-left: -8px;
                     }
                     :host(m-range-slider[disabled]) .slider .controller {
                         cursor: not-allowed;
@@ -2829,7 +2947,7 @@
                         font-size: 12px;
                         line-height: 1;
                         border-radius: 4px;
-                        background-color: #303133;
+                        background: #303133;
                     }
                     :host(m-range-slider) .slider .indicator .arrow {
                         border-left: 5px solid transparent;
@@ -2847,10 +2965,13 @@
                         height: 6px;
                         cursor: pointer;
                         border-radius: 3px;
-                        background-color: #e4e7ed;
+                        background: #e4e7ed;
                         overflow: hidden;
                         position: relative;
                         margin: 0 auto;
+                    }
+                    :host(m-range-slider) .slider.min .track {
+                        height: 4px;
                     }
                     :host(m-range-slider[disabled]) .slider .track {
                         cursor: not-allowed;
@@ -2858,12 +2979,15 @@
                     :host(m-range-slider) .slider .track .progress {
                         width: 0;
                         height: 6px;
-                        background-color: var(--m-slider-main-color, #0359ff);
+                        background: var(--m-slider-main-color, #0359ff);
                         position: absolute;
                         top: 0;
                     }
+                    :host(m-range-slider) .slider.min .track .progress {
+                        height: 4px;
+                    }
                     :host(m-range-slider[disabled]) .slider .track .progress {
-                        background-color: #c0c4cc;
+                        background: #c0c4cc;
                     }
                     :host(m-range-slider) .slider-input {
                         height: 30px;
@@ -2873,6 +2997,9 @@
                         overflow: hidden;
                         display: flex;
                         transition: border .3s linear;
+                    }
+                    :host(m-range-slider) .slider-input.min {
+                        height: 20px;
                     }
                     :host(m-range-slider) .slider-input:hover {
                         border-color: #bcc1cd;
@@ -2895,7 +3022,12 @@
                         border: none;
                         outline: none;
                         background: none;
-                        background-color: #eaeef4;
+                        background: #eaeef4;
+                    }
+                    :host(m-range-slider) .slider-input.min button {
+                        width: 20px;
+                        height: 20px;
+                        line-height: 20px;
                     }
                     :host(m-range-slider) .slider-input button:hover {
                         color: var(--m-slider-main-color, #0359ff);
@@ -2918,24 +3050,30 @@
                         border: none;
                         border-left: 1px solid #dcdfe6;
                         border-right: 1px solid #dcdfe6;
-                        background-color: var(--m-slider-auxiliary-color, #fff);
+                        background: var(--m-slider-auxiliary-color, #fff);
                         outline: none;
                         display: block;
                         box-sizing: border-box;
+                    }
+                    :host(m-range-slider) .slider-input.min input {
+                        width: 50px;
+                        height: 20px;
+                        padding: 0 5px;
+                        line-height: 20px;
                     }
                     :host(m-range-slider[disabled]) .slider-input button,
                     :host(m-range-slider[disabled]) .slider-input input {
                         color: #c0c4cc;
                         cursor: not-allowed;
-                        background-color: #f5f7fa;
+                        background: #f5f7fa;
                     }
                 </style>
-                <div class="slider-input slider-left${showInput ? "" : " hidden"}">
+                <div class="slider-input slider-left${showInput ? "" : " hidden"}${size ? " " + size : ""}">
                     <button class="less"${min >= left || disabled ? " disabled" : ""}>-</button>
-                    <input type="text" value="${left}"${disabled ? " disabled" : ""}>
+                    <input type="text" title="${left}" value="${left}"${disabled ? " disabled" : ""}>
                     <button class="more"${max <= left || left + step >= right || disabled ? " disabled" : ""}>+</button>
                 </div>
-                <div class="slider${showInput ? " more" : ""}">
+                <div class="slider${showInput ? " more" : ""}${size ? " " + size : ""}">
                     <div class="controller controller-left">
                         <div class="indicator">
                             <span class="current">${left}</span>
@@ -2952,9 +3090,9 @@
                         <div class="progress"></div>
                     </div>
                 </div>
-                <div class="slider-input slider-right${showInput ? "" : " hidden"}">
+                <div class="slider-input slider-right${showInput ? "" : " hidden"}${size ? " " + size : ""}">
                     <button class="less"${min >= right || right - step <= left || disabled ? " disabled" : ""}>-</button>
-                    <input type="text" value="${right}"${disabled ? " disabled" : ""}>
+                    <input type="text" title="${right}" value="${right}"${disabled ? " disabled" : ""}>
                     <button class="more"${max <= right || disabled ? " disabled" : ""}>+</button>
                 </div>
             `;
@@ -3023,7 +3161,7 @@
                     return false;
                 }
                 let tempStep = self.rightActive + 1; // 变化后的激活段数
-                if (tempStep * self.step + self.min > self.max) { // 超过了最大值
+                if (tempStep * self.stepValue + self.minValue > self.maxValue) { // 超过了最大值
                     return false;
                 }
                 self.rightActive += 1;
@@ -3102,47 +3240,56 @@
                 self.ctrl = 1; // 记录点击的控制器
             });
             // 滑块容器 mousemove 事件
-            self.shadowRoot.querySelector(".slider").addEventListener("mousemove", function(e) {
+            // self.shadowRoot.querySelector(".slider").addEventListener("mousemove", function(e) {
+            window.addEventListener("mousemove", function(e) {
                 if (self.disabled) { // 组件被禁用
                     return false;
                 }
-                if (!self.drag) {
+                if (!self.drag) { // 尚未开启拖拽
                     return false;
                 }
                 let diff = e.screenX - self.startX; // 拖拽距离
-                let totalDiff = self.max - self.min; // 值域范围
-                let totalLen = this.querySelector(".track").offsetWidth; // slider 总长度
-                let stepTotalCount = totalDiff / self.step; // 分段数
+                let totalDiff = self.maxValue - self.minValue; // 值域范围
+                let totalLen = self.shadowRoot.querySelector(".slider .track").offsetWidth; // slider 总长度
+                let stepTotalCount = totalDiff / self.stepValue; // 分段数
                 let stepLen = Math.floor(totalLen / stepTotalCount); // 步长对应像素长度
                 if (diff % stepLen <= stepLen * 0.2 || diff % stepLen >= stepLen * 0.8) {
-                    let stepCount = Math.round(diff / stepLen); // 当前变化段数
+                    let stepCount = Math.round(diff / totalLen * stepTotalCount); // 当前变化段数
                     if (self.ctrl == 0) {
                         let realStepCount = self.leftActive + stepCount; // 计算目前激活段数
-                        if (realStepCount < self.currentRightActive) {
-                            self.currentLeftActive = realStepCount; // 记录
-                            self.calibrationSlider(); // 校准 slider 的数据
-                        }
+                        if (realStepCount >= self.currentRightActive) realStepCount = self.currentRightActive - 1; // 设置最大值
+                        if (realStepCount < 0) realStepCount = 0; // 设置最小值
+                        self.currentLeftActive = realStepCount; // 记录
+                        self.calibrationSlider(); // 校准 slider 的数据
                     }
                     if (self.ctrl == 1) {
                         let realStepCount = self.rightActive + stepCount; // 计算目前激活段数
-                        if (realStepCount > self.currentLeftActive) {
-                            self.currentRightActive = realStepCount; // 记录
-                            self.calibrationSlider(); // 校准 slider 的数据
-                        }
+                        if (realStepCount <= self.currentLeftActive) realStepCount = self.currentLeftActive + 1; // 设置最小值
+                        if (realStepCount > stepTotalCount) realStepCount = stepTotalCount; // 设置最大值
+                        self.currentRightActive = realStepCount; // 记录
+                        self.calibrationSlider(); // 校准 slider 的数据
                     }
                 }
             });
             // 滑块容器 mouseup 事件
-            self.addEventListener("mouseup", function(e) {
+            window.addEventListener("mouseup", function(e) {
+                if (!self.drag) { // 尚未开启拖拽
+                    return false;
+                }
                 // 获取当前激活段数
                 self.leftActive = self.currentLeftActive || 0;
                 self.rightActive = self.currentRightActive || 0;
                 self.drag = false; // 拖拽停止
+                self.shadowRoot.querySelector(".slider .controller-left").classList.remove("active"); // 隐藏滑块数字
+                self.shadowRoot.querySelector(".slider .controller-right").classList.remove("active"); // 隐藏滑块数字
             });
             // 组件 mouseleave 事件
             self.addEventListener("mouseleave", function(e) {
-                self.active = self.currentActive || 0; // 获取当前激活段数
-                self.drag = false; // 拖拽停止
+                if (self.drag) { // 开启拖拽
+                    return false;
+                }
+                // self.active = self.currentActive || 0; // 获取当前激活段数
+                // self.drag = false; // 拖拽停止
                 this.shadowRoot.querySelector(".slider .controller-left").classList.remove("active"); // 隐藏滑块数字
                 this.shadowRoot.querySelector(".slider .controller-right").classList.remove("active"); // 隐藏滑块数字
             });
@@ -3183,24 +3330,24 @@
             let tempLeftValue = new Number(self.shadowRoot.querySelector(".slider-left input").value.replace(/[^0-9\.\+-]/g, "") || 0); // 获取输入框的值
             let tempRightValue = new Number(self.shadowRoot.querySelector(".slider-right input").value.replace(/[^0-9\.\+-]/g, "") || 0); // 获取输入框的值
             // 阈值判定
-            if (tempLeftValue < self.min) tempLeftValue = self.min;
-            if (tempLeftValue > self.max) tempLeftValue = self.max;
-            if (tempRightValue < self.min) tempRightValue = self.min;
-            if (tempRightValue > self.max) tempRightValue = self.max;
+            if (tempLeftValue < self.minValue) tempLeftValue = self.minValue;
+            if (tempLeftValue > self.maxValue) tempLeftValue = self.maxValue;
+            if (tempRightValue < self.minValue) tempRightValue = self.minValue;
+            if (tempRightValue > self.maxValue) tempRightValue = self.maxValue;
             if (tempLeftValue >= tempRightValue) {
-                if (tempLeftValue + self.step <= self.max) {
-                    tempRightValue = tempLeftValue + self.step;
+                if (tempLeftValue + self.stepValue <= self.maxValue) {
+                    tempRightValue = tempLeftValue + self.stepValue;
                 } else {
-                    tempLeftValue = tempRightValue - self.step;
+                    tempLeftValue = tempRightValue - self.stepValue;
                 }
             }
             // 阶层校准
-            let diff = tempLeftValue - self.min;
-            let tempStep = Math.round(diff / self.step);
+            let diff = tempLeftValue - self.minValue;
+            let tempStep = Math.round(diff / self.stepValue);
             self.leftActive = tempStep;
             self.currentLeftActive = self.leftActive;
-            diff = tempRightValue - self.min;
-            tempStep = Math.round(diff / self.step);
+            diff = tempRightValue - self.minValue;
+            tempStep = Math.round(diff / self.stepValue);
             self.rightActive = tempStep;
             self.currentRightActive = self.rightActive;
             self.calibrationSlider(); // 矫正数据
@@ -3209,27 +3356,32 @@
         calibrationSlider() {
             // 校准组件数据
             let self = this;
-            let totalDiff = self.max - self.min; // 值域范围
-            let stepTotalCount = totalDiff / self.step; // 分段数
+            let totalDiff = self.maxValue - self.minValue; // 值域范围
+            let stepTotalCount = totalDiff / self.stepValue; // 分段数
+            // 校验左右步阶的合法性
+            if (self.currentLeftActive < 0) self.currentLeftActive = 0;
+            if (self.currentLeftActive > self.currentRightActive - 1) self.currentLeftActive = self.currentRightActive - 1;
+            if (self.currentRightActive < self.currentLeftActive + 1) self.currentRightActive = self.currentLeftActive + 1;
+            if (self.currentRightActive > stepTotalCount) self.currentRightActive = stepTotalCount;
             let stepPercent = Math.floor(100 / stepTotalCount); // 步长对应百分比
-            let leftPercent = stepPercent * self.currentLeftActive; // 计算左侧百分比
-            let rightPercent = stepPercent * self.currentRightActive; // 计算左侧百分比
-            let activePercent = stepPercent * (self.currentRightActive - self.currentLeftActive); // 计算激活的百分比
-            let realLeftValue = self.min + self.step * self.currentLeftActive; // 当前的值
-            let realRightValue = self.min + self.step * self.currentRightActive; // 当前的值
-            if (realLeftValue > self.min) { // 更新左侧 - 按钮的状态
+            let leftPercent = (self.currentLeftActive / stepTotalCount * 100).toFixed(2); // 计算左侧百分比
+            let rightPercent = (self.currentRightActive / stepTotalCount * 100).toFixed(2); // 计算右侧百分比
+            let activePercent = rightPercent - leftPercent; // 计算激活的百分比
+            let realLeftValue = self.minValue + self.stepValue * self.currentLeftActive; // 当前的值
+            let realRightValue = self.minValue + self.stepValue * self.currentRightActive; // 当前的值
+            if (realLeftValue > self.minValue) { // 更新左侧 - 按钮的状态
                 self.shadowRoot.querySelector(".slider-left .less").removeAttribute("disabled");
             } else {
                 self.shadowRoot.querySelector(".slider-left .less").setAttribute("disabled", "");
             }
-            if (realRightValue - realLeftValue > self.step) { // 更新左侧 + 和 右侧 - 按钮的状态
+            if (realRightValue - realLeftValue > self.stepValue) { // 更新左侧 + 和 右侧 - 按钮的状态
                 self.shadowRoot.querySelector(".slider-left .more").removeAttribute("disabled");
                 self.shadowRoot.querySelector(".slider-right .less").removeAttribute("disabled");
             } else {
                 self.shadowRoot.querySelector(".slider-left .more").setAttribute("disabled", "");
                 self.shadowRoot.querySelector(".slider-right .less").setAttribute("disabled", "");
             }
-            if (realRightValue < self.max) { // 更新右侧 + 按钮状态
+            if (realRightValue < self.maxValue) { // 更新右侧 + 按钮状态
                 self.shadowRoot.querySelector(".slider-right .more").removeAttribute("disabled");
             } else {
                 self.shadowRoot.querySelector(".slider-right .more").setAttribute("disabled", "");
@@ -3239,7 +3391,9 @@
             self.shadowRoot.querySelector(".slider .controller-left .current").innerText = realLeftValue;
             self.shadowRoot.querySelector(".slider .controller-right .current").innerText = realRightValue;
             self.shadowRoot.querySelector(".slider-left input").value = realLeftValue;
+            self.shadowRoot.querySelector(".slider-left input").setAttribute("title", realLeftValue);
             self.shadowRoot.querySelector(".slider-right input").value = realRightValue;
+            self.shadowRoot.querySelector(".slider-right input").setAttribute("title", realRightValue);
             self.shadowRoot.querySelector(".slider .track .progress").style.left = leftPercent + "%";
             self.shadowRoot.querySelector(".slider .track .progress").style.width = activePercent + "%";
             self.calibrationTip(); // 校准 tip 位置
@@ -3267,7 +3421,7 @@
         get value() {
             // 获取当前值
             let self = this;
-            return [self.min + self.leftActive * self.step, self.min + self.rightActive * self.step];
+            return [self.minValue + self.leftActive * self.stepValue, self.minValue + self.rightActive * self.stepValue];
         }
 
         set value(value) {
@@ -3278,22 +3432,75 @@
             let self = this;
             // 阈值判定
             let left = new Number(value[0] || 0);
-            if (left > self.max) left = self.max;
-            if (left < (self.rightActive - 1) * self.step + self.min) left = (self.rightActive + 1) * self.step + self.min;
+            if (left < self.minValue) left = self.minValue;
+            if (left > (self.rightActive - 1) * self.stepValue + self.minValue) left = (self.rightActive - 1) * self.stepValue + self.minValue;
             // 阶层校准
-            let diff = left - self.min;
-            let tempStep = Math.round(diff / self.step);
-            self.leftActive = tempStep;
-            self.currentLeftActive = self.leftActive;
+            let diff = left - self.minValue;
+            let tempStep = Math.round(diff / self.stepValue);
+            self.currentLeftActive = tempStep;
             // 阈值判定
             let right = new Number(value[1] || 0);
-            if (right > self.max) right = self.max;
-            if (right < (self.leftActive + 1) * self.step + self.min) right = (self.leftActive + 1) * self.step + self.min;
+            if (right > self.maxValue) right = self.maxValue;
+            if (right < (self.leftActive + 1) * self.stepValue + self.minValue) right = (self.leftActive + 1) * self.stepValue + self.minValue;
             // 阶层校准
-            diff = right - self.min;
-            tempStep = Math.round(diff / self.step);
-            self.rightActive = tempStep;
-            self.currentRightActive = self.rightActive;
+            diff = right - self.minValue;
+            tempStep = Math.round(diff / self.stepValue);
+            self.currentRightActive = tempStep;
+            self.calibrationSlider(); // 矫正数据
+            self.leftActive = self.currentLeftActive;
+            self.rightActive = self.currentRightActive;
+        }
+
+        get min() {
+            // 获取最小值
+            let self = this;
+            return self.minValue;
+        }
+
+        set min(value) {
+            // 设置最小区间
+            let self = this;
+            let min = new Number(value) || 0; // 值域最小值
+            if (min > self.maxValue - self.stepValue) { // 判断最小值是否合法
+                return false;
+            }
+            self.minValue = min; // 设置最小值
+            self.calibrationSlider(); // 矫正数据
+        }
+
+        get max() {
+            // 获取最大值
+            let self = this;
+            return self.maxValue;
+        }
+
+        set max(value) {
+            // 设置最大值
+            let self = this;
+            let max = new Number(value) || 0; // 值域最大值
+            if (max < self.minValue + self.stepValue) { // 判断最大值是否合法
+                return false;
+            }
+            self.maxValue = max; // 设置最大值
+            self.calibrationSlider(); // 矫正数据
+        }
+
+        get step() {
+            // 获取步长
+            let self = this;
+            return self.stepValue;
+        }
+
+        set step(value) {
+            // 设置步长
+            let self = this;
+            let step = new Number(value) || 0; // 步长
+            if (step > self.maxValue - self.minValue) { // 判断步长是否合法
+                return false;
+            }
+            if (step == 0) step = 1;
+            if ((self.maxValue - self.minValue) % step != 0) self.maxValue = self.minValue + Math.ceil((self.maxValue - self.minValue) / step) * step;
+            self.stepValue = step; // 设置步长
             self.calibrationSlider(); // 矫正数据
         }
     }
@@ -3320,6 +3527,7 @@
             let html = /*html*/ `
                 <style type="text/css">
                     :host(m-tag) {
+                        width: -moz-fit-content;
                         width: fit-content;
                         cursor: pointer;
                         -webkit-touch-callout: none; /* iOS Safari */
@@ -3334,6 +3542,7 @@
                         cursor: not-allowed;
                     }
                     :host(m-tag) .tag {
+                        width: -moz-fit-content;
                         width: fit-content;
                         padding: 0 6px;
                         color: var(--m-tag-color, #636363);
@@ -3342,7 +3551,7 @@
                         line-height: 1.5;
                         border-radius: 3px;
                         border: var(--m-tag-color, #636363) 1px solid;
-                        background-color: #fff;
+                        background: #fff;
                         transition: all .2s linear;
                     }
                     :host(m-tag:not([disabled])) .tag:hover {
@@ -3352,7 +3561,7 @@
                     :host(m-tag:not([disabled])) .tag.active {
                         color: var(--m-tag-active-color, #0359ff);
                         border: var(--m-tag-active-color, #0359ff) 1px solid;
-                        background-color: var(--m-tag-active-bg, rgba(3,99,255,.05));
+                        background: var(--m-tag-active-bg, rgba(3,99,255,.05));
                     }
                     :host(m-tag[disabled]) .tag {
                         color: var(--m-tag-disable-color, #c8c8c8);
@@ -3483,6 +3692,7 @@
             let html = /*html*/ `
                 <style type="text/css">
                     :host(m-form-item) {
+                        width: -moz-fit-content;
                         width: fit-content;
                         height: auto;
                         display: inline-flex;
@@ -3700,7 +3910,7 @@
                     :host(m-album) .content {
                         width: 100%;
                         min-height: 100%;
-                        background-color: #fafafa;
+                        background: #fafafa;
                         position: relative;
                     }
                     :host(m-album) .content ::slotted(m-album-item) {
@@ -3749,7 +3959,7 @@
                         font-size: 12px;
                         cursor: pointer;
                         border-radius: 18px;
-                        background-color: rgba(31,45,61,.11);
+                        background: rgba(31,45,61,.11);
                         transition: left .3s linear, right .3s linear;
                         display: flex;
                         justify-content: center;
@@ -3760,7 +3970,7 @@
                         margin-top: -18px;
                     }
                     :host(m-album) .content .arrows > div:hover {
-                        background-color: rgba(31,45,61,.24);
+                        background: rgba(31,45,61,.24);
                     }
                     :host(m-album) .content .arrows .arrow-left {
                         left: 0;
@@ -3783,6 +3993,7 @@
                         z-index: 999;
                     }
                     :host(m-album) .indicators ul {
+                        width: -moz-fit-content;
                         width: fit-content;
                         list-style: none;
                         display: flex;
@@ -3802,7 +4013,7 @@
                         cursor: pointer;
                         outline: none;
                         border: none;
-                        background-color: #c0c4cc;
+                        background: #c0c4cc;
                         opacity: .24;
                         display: block;
                     }
@@ -4107,7 +4318,7 @@
                         font-size: 14px;
                         cursor: pointer;
                         border-radius: 16px;
-                        background-color: var(--m-operation-list-bg, #0359ff);
+                        background: var(--m-operation-list-bg, #0359ff);
                         box-sizing: border-box;
                         display: inline-flex;
                         align-items: center;
@@ -4116,7 +4327,7 @@
                     :host(m-operation-list) .m-operation-tip.disabled,
                     :host(m-operation-list:hover) .m-operation-tip.disabled {
                         color: var(--m-operation-list-disable-color, #8f8f8f);
-                        background-color: var(--m-operation-list-disable-bg, #e9e9e9);
+                        background: var(--m-operation-list-disable-bg, #e9e9e9);
                         cursor: not-allowed;
                     }
                     :host(m-operation-list:hover) .m-operation-tip {
@@ -4133,6 +4344,7 @@
                         transform: rotateX(180deg);
                     }
                     :host(m-operation-list) .m-operation-list {
+                        width: -moz-fit-content;
                         width: fit-content;
                         max-width: 180px;
                         height: fit-content;
@@ -4151,7 +4363,7 @@
                         padding: 0;
                         list-style: none;
                         overflow: hidden;
-                        background-color: #fff;
+                        background: #fff;
                         box-sizing: border-box;
                         transition: height .3s ease, padding .2s linear;
                         position: relative;
@@ -4179,7 +4391,7 @@
                     }
                     :host(m-operation-list) .m-operation-list ::slotted(m-operation:hover) {
                         color: var(--m-operation-active-color, #0359ff);
-                        background-color: var(--m-operation-active-bg, #f3f3f3);
+                        background: var(--m-operation-active-bg, #f3f3f3);
                     }
                     :host(m-operation-list) .m-operation-list ::slotted(m-operation[disabled]) {
                         color: var(--m-operation-disable-color, #8f8f8f);
@@ -4468,12 +4680,13 @@
                         position: relative;
                     }
                     :host(m-function) .m-function .m-function-content {
+                        width: -moz-fit-content;
                         width: fit-content;
                         height: 32px;
                         color: var(--m-function-color, #fff);
                         font-size: 14px;
                         border-radius: 16px;
-                        background-color: var(--m-function-bg, #0359ff);
+                        background: var(--m-function-bg, #0359ff);
                         box-sizing: border-box;
                         display: inline-flex;
                         align-items: center;
@@ -4492,7 +4705,7 @@
                     :host(m-function) .m-function.disabled .m-function-content,
                     :host(m-function:hover) .m-function.disabled .m-function-content {
                         color: var(--m-function-disable-color, #8f8f8f);
-                        background-color: var(--m-function-disable-bg, #e9e9e9);
+                        background: var(--m-function-disable-bg, #e9e9e9);
                         cursor: not-allowed;
                     }
                     :host(m-function:hover) .m-function:not(.disabled) .m-function-content {
@@ -4508,6 +4721,7 @@
                         line-height: 1;
                     }
                     :host(m-function) .m-function .m-function-content .visible-tip {
+                        width: -moz-fit-content;
                         width: fit-content;
                         white-space: nowrap;
                     }
@@ -4720,6 +4934,7 @@
                         position: relative;
                     }
                     :host(m-icon-function) .m-function .m-function-content {
+                        width: -moz-fit-content;
                         width: fit-content;
                         height: 32px;
                         color: var(--m-icon-function-color, #333);
@@ -4732,7 +4947,7 @@
                     }
                     :host(m-icon-function:hover) .m-function:not(.disabled) .m-function-content {
                         color: var(--m-icon-function-active-color, #0359ff);
-                        background-color: var(--m-icon-function-active-bg, #e9e9e9);
+                        background: var(--m-icon-function-active-bg, #e9e9e9);
                     }
                     :host(m-icon-function) .m-function.disabled .m-function-content,
                     :host(m-icon-function:hover) .m-function.disabled .m-function-content {
@@ -4746,6 +4961,7 @@
                         text-align: center;
                     }
                     :host(m-icon-function) .m-function .m-function-content .visible-tip {
+                        width: -moz-fit-content;
                         width: fit-content;
                         font-size: 12px;
                         white-space: nowrap;
@@ -4753,6 +4969,7 @@
                         position: absolute;
                     }
                     :host(m-icon-function) .m-function .m-function-tip {
+                        width: -moz-fit-content;
                         width: fit-content;
                         display: none;
                         position: fixed;
@@ -4780,13 +4997,14 @@
                         transform: rotate(180deg);
                     }
                     :host(m-icon-function) .m-function .m-function-tip .tip-content {
+                        width: -moz-fit-content;
                         width: fit-content;
                         padding: 8px;
                         color: var(--m-icon-function-tip-color, #fff);
                         font-size: 12px;
                         line-height: 1;
                         border-radius: 3px;
-                        background-color: var(--m-icon-function-tip-bg, #000);
+                        background: var(--m-icon-function-tip-bg, #000);
                         box-shadow: rgba(0,0,0,0.25) 4px 4px 10px;
                         display: block;
                     }
@@ -5196,7 +5414,8 @@
                     }
                     :host(m-menu-group.active),
                     :host(m-menu-group:hover) {
-                        background-color: var(--m-menu-group-active-bg, #f3f3f3);
+                        background: var(--m-menu-group-active-bg, #f3f3f3);
+                        box-shadow: var(--m-menu-group-active-shadow, none);
                     }
                     :host(m-menu-group[disabled]:hover) {
                         background: none;
@@ -5601,6 +5820,7 @@
                 <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
                 <style type="text/css">
                     :host(m-table) {
+                        width: -moz-fit-content;
                         width: fit-content;
                         min-width: 300px;
                         max-width: 100%;
@@ -5612,25 +5832,29 @@
                         margin: 0 auto;
                     }
                     :host(m-table) .table-body {
+                        width: -moz-fit-content;
                         width: fit-content;
                         min-width: 100%;
                         min-height: 100px;
                         overflow: auto;
                     }
                     :host(m-table) .table-body .table-header {
+                        width: -moz-fit-content;
                         width: fit-content;
                         min-width: 100%;
-                        background-color: #dfe8fb;
+                        background: var(--m-table-header-bg, #dfe8fb);
                         border-bottom: 1px solid #ebeff2;
                     }
                     :host(m-table) .table-header .main-table-header {
+                        width: -moz-fit-content;
                         width: fit-content;
                     }
                     :host(m-table) .table-body .table-main {
+                        width: -moz-fit-content;
                         width: fit-content;
                         min-width: 100%;
                         overflow: auto;
-                        background-color: #fff;
+                        background: #fff;
                         display: flex;
                         flex-direction: column;
                     }
@@ -5642,7 +5866,7 @@
                     :host(m-table) .table-body.empty > .table-main {
                         width: 100%;
                         min-height: 320px;
-                        background-color: #f5f5f5;
+                        background: #f5f5f5;
                     }
                     :host(m-table) .table-body.error .error,
                     :host(m-table) .table-body.empty .empty {
@@ -5677,6 +5901,7 @@
                         margin-top: 30px;
                     }
                     :host(m-table) .table-body .fixed-body {
+                        width: -moz-fit-content;
                         width: fit-content;
                         overflow: hidden;
                         position: absolute;
@@ -5687,21 +5912,23 @@
                         box-shadow: -4px 0px 4px rgba(0,0,0,.1);
                     }
                     :host(m-table) .fixed-body .fixed-table-header {
+                        width: -moz-fit-content;
                         width: fit-content;
-                        background-color: #dfe8fb;
+                        background: var(--m-table-header-bg, #dfe8fb);
                         border-bottom: 1px solid #ebeff2;
                     }
                     :host(m-table) .fixed-body .fixed-table {
+                        width: -moz-fit-content;
                         width: fit-content;
                         overflow: auto;
-                        background-color: #fff;
+                        background: #fff;
                     }
                     :host(m-table) .table-footer {
                         width: 100%;
                         height: 62px;
                         padding: 15px 30px;
                         box-sizing: border-box;
-                        background-color: #fff;
+                        background: #fff;
                     }
                 </style>
                 <div class="table-body">
@@ -5984,6 +6211,7 @@
                 <link rel="stylesheet" type="text/css" href="${url}iconfont/iconfont.css">
                 <style type="text/css">
                     :host(m-simple-table) {
+                        width: -moz-fit-content;
                         width: fit-content;
                         min-width: 300px;
                         max-width: 100%;
@@ -6004,12 +6232,12 @@
                     }
                     :host(m-simple-table) .table-body .table-header {
                         width: 100%;
-                        background-color: #eef2f6;
+                        background: #eef2f6;
                     }
                     :host(m-simple-table) .table-body .table-main {
                         width: 100%;
                         overflow-y: auto;
-                        background-color: #fff;
+                        background: #fff;
                         display: flex;
                         flex-direction: column;
                     }
@@ -6021,7 +6249,7 @@
                     :host(m-simple-table) .table-body.empty > .table-main {
                         width: 100%;
                         min-height: 320px;
-                        background-color: #f5f5f5;
+                        background: #f5f5f5;
                     }
                     :host(m-simple-table) .table-body.error .error,
                     :host(m-simple-table) .table-body.empty .empty {
